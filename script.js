@@ -54,9 +54,13 @@ async function hasSubmittedApplication() {
         console.error('Error checking application status:', err);
     }
     
-    // Fallback to localStorage for offline/error cases
-    const applicationKey = `application_${user.id || user.email}`;
-    return localStorage.getItem(applicationKey) !== null;
+    // Fallback to localStorage for offline/error cases - check for submitted flag
+    const submittedKey = `application_submitted_${user.id || user.email}`;
+    const submitted = localStorage.getItem(submittedKey);
+    if (submitted) {
+        return JSON.parse(submitted).submitted === true;
+    }
+    return false;
 }
 
 function getSettingsStorageKey() {
@@ -382,11 +386,15 @@ if (applicationForm) {
                 // Mark that user has submitted an application
                 const user = getCurrentUser();
                 if (user) {
-                    const applicationKey = `application_${user.id || user.email}`;
-                    localStorage.setItem(applicationKey, JSON.stringify({
+                    const submittedKey = `application_submitted_${user.id || user.email}`;
+                    localStorage.setItem(submittedKey, JSON.stringify({
+                        submitted: true,
                         submittedAt: new Date().toISOString(),
                         data: data
                     }));
+                    // Clear draft
+                    const draftKey = `application_draft_${user.id || user.email}`;
+                    localStorage.removeItem(draftKey);
                 }
                 
                 // Store results in sessionStorage
@@ -421,13 +429,13 @@ document.querySelectorAll('input[type="tel"]').forEach(input => {
     });
 });
 
-// Get saved application data from localStorage
+// Get saved application data from localStorage (draft only)
 function getSavedApplication() {
     const user = getCurrentUser();
     if (!user) return null;
     
-    const applicationKey = `application_${user.id || user.email}`;
-    const saved = localStorage.getItem(applicationKey);
+    const draftKey = `application_draft_${user.id || user.email}`;
+    const saved = localStorage.getItem(draftKey);
     return saved ? JSON.parse(saved) : null;
 }
 
@@ -449,6 +457,51 @@ function populateFormFromSavedApplication() {
     return true;
 }
 
+// Auto-save form data to localStorage as user types
+function setupAutoSave() {
+    const form = document.getElementById('applicationForm');
+    if (!form) return;
+    
+    const user = getCurrentUser();
+    if (!user) return;
+    
+    const draftKey = `application_draft_${user.id || user.email}`;
+    
+    // Save form data function
+    function saveFormData() {
+        const formData = new FormData(form);
+        const data = {};
+        
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+        
+        localStorage.setItem(draftKey, JSON.stringify({
+            savedAt: new Date().toISOString(),
+            data: data
+        }));
+    }
+    
+    // Auto-save on inputs and selects
+    const inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('change', saveFormData);
+        input.addEventListener('blur', saveFormData);
+    });
+}
+
+// Load saved form on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('applicationForm');
+    if (form && getCurrentUser()) {
+        // Populate with saved data if available
+        populateFormFromSavedApplication();
+        
+        // Setup autosave
+        setupAutoSave();
+    }
+});
+
 // Handle editing an application
 if (window.location.pathname.endsWith('application.html') && sessionStorage.getItem('editingApplication') === 'true') {
     sessionStorage.removeItem('editingApplication');
@@ -462,9 +515,28 @@ if (window.location.pathname.endsWith('application.html') && sessionStorage.getI
                 submitButton.textContent = 'Update and Find Matches';
             }
             
-            // Populate form with saved application data
+            // Populate form with submitted application data
             setTimeout(() => {
-                if (populateFormFromSavedApplication()) {
+                const user = getCurrentUser();
+                let applicationLoaded = false;
+                
+                if (user) {
+                    const submittedKey = `application_submitted_${user.id || user.email}`;
+                    const submitted = localStorage.getItem(submittedKey);
+                    if (submitted) {
+                        const app = JSON.parse(submitted);
+                        const data = app.data;
+                        Object.keys(data).forEach(key => {
+                            const field = document.getElementById(key);
+                            if (field) {
+                                field.value = data[key];
+                            }
+                        });
+                        applicationLoaded = true;
+                    }
+                }
+                
+                if (applicationLoaded) {
                     // Show edit notice
                     const messageDiv = document.createElement('div');
                     messageDiv.className = 'info-message';
