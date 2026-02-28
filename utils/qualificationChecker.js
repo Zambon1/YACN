@@ -20,6 +20,28 @@ export function convertCreditScoreToRating(creditScore) {
     }
 }
 
+export function convertCreditScoreToNumeric(creditScore) {
+    if (typeof creditScore === 'number') {
+        return creditScore;
+    }
+    
+    switch (creditScore) {
+        case 'very-poor':
+        case 'very poor':
+            return 300;
+        case 'poor':
+            return 560;
+        case 'fair':
+            return 650;
+        case 'good':
+            return 700;
+        case 'excellent':
+            return 750;
+        default:
+            return 560; // Treat unknown as fair
+    }
+}
+
 /**
  * Check if an applicant qualifies for an apartment based on various criteria
  * Returns { qualified: boolean, reasons: string[] }
@@ -31,6 +53,7 @@ export function checkQualification(applicant, apartment) {
     
     // 1. Check income requirement (typically 3x rent)
     const monthlyIncome = parseFloat(applicant.monthlyIncome || 0);
+    const additionalIncome = parseFloat(applicant.additionalIncome || 0);
     const totalIncome = monthlyIncome + additionalIncome;
     const requiredIncome = apartment.rent * apartment.min_income_multiplier;
     
