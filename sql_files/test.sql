@@ -1,6 +1,6 @@
 
   --1 - USERS
-CREATE TABLE users (
+CREATE TABLE users IF NOT EXISTS (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
@@ -18,14 +18,14 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT now()
 );
 
-CREATE TABLE settings (
+CREATE TABLE settings IF NOT EXISTS (
   id SERIAL PRIMARY KEY,
   text_messages BOOLEAN,
   email_list BOOLEAN,
   dark_mode BOOLEAN
 );
 
-CREATE TABLE preferences (
+CREATE TABLE preferences IF NOT EXISTS (
   id SERIAL PRIMARY KEY,
   price_min INT,
   price_max INT,
@@ -37,7 +37,7 @@ CREATE TABLE preferences (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE guarantor (
+CREATE TABLE guarantor IF NOT EXISTS (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id) NOT NULL ON DELETE CASCADE,
   monthly_income INT NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE guarantor (
   credit_score VARCHAR(255) CHECK (credit_score IN ('very poor', 'poor', 'fair', 'good', 'excellent'))
 );
 
-CREATE TABLE leaser (
+CREATE TABLE leaser IF NOT EXISTS (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   first_name VARCHAR(255) NOT NULL,
   last_name VARCHAR(255) NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE leaser (
   email VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE complex (
+CREATE TABLE complex IF NOT EXISTS (
   id SERIAL PRIMARY KEY,
   leaser_id UUID NOT NULL REFERENCES leaser(id) ON DELETE CASCADE,
   us_state VARCHAR(255) NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE complex (
   application_rules_id INT REFERENCES application_rules(id) ON DELETE CASCADE
 );
 
-CREATE TABLE unit (
+CREATE TABLE unit IF NOT EXISTS (
   id SERIAL PRIMARY KEY,
   complex_id INT NOT NULL REFERENCES complex(id) ON DELETE CASCADE,
   price INT NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE unit (
   available BOOLEAN NOT NULL
 );
 
-CREATE TABLE applications (
+CREATE TABLE applications IF NOT EXISTS (
   id SERIAL PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   unit_id INT REFERENCES unit(id),
@@ -97,7 +97,7 @@ CREATE TABLE applications (
   criminal_record BOOLEAN
 );
 
-CREATE TABLE application_requirements (
+CREATE TABLE application_requirements IF NOT EXISTS (
   id SERIAL PRIMARY KEY,
   complex_id INT NOT NULL REFERENCES complex(id) ON DELETE CASCADE,
   first_name BOOLEAN,
