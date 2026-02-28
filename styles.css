@@ -135,7 +135,7 @@ body {
 
 .branch-visualization {
     position: relative;
-    min-height: 700px;
+    min-height: 760px;
     max-width: 1400px;
     margin: 0 auto;
 }
@@ -143,9 +143,9 @@ body {
 /* Person Silhouette */
 .person-silhouette {
     position: absolute;
-    left: 50px;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 50%;
+    bottom: 26px;
+    transform: translateX(-50%);
     z-index: 10;
     text-align: center;
 }
@@ -225,7 +225,7 @@ body {
     position: absolute;
     text-align: center;
     background: white;
-    padding: 1.5rem 2rem;
+    padding: 0.75rem;
     border-radius: 16px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     border: 3px solid var(--border-color);
@@ -234,18 +234,22 @@ body {
     z-index: 5;
     opacity: 0;
     animation: fadeInNode 0.5s ease-out forwards;
-    min-width: 160px;
+    width: 220px;
+    transform: rotate(var(--node-rotation, 0deg));
 }
 
 .apartment-node:hover {
-    transform: translateY(-5px) scale(1.05);
+    transform: rotate(var(--node-rotation, 0deg)) translateY(-5px) scale(1.05);
     box-shadow: 0 8px 20px rgba(217, 119, 87, 0.3);
     border-color: var(--primary-color);
 }
 
-.node-icon {
-    font-size: 3rem;
-    margin-bottom: 0.5rem;
+.node-image {
+    width: 100%;
+    height: 96px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 0.6rem;
 }
 
 .node-title {
@@ -264,49 +268,58 @@ body {
 
 /* Node Positions - Evenly spaced vertically */
 .node-1 {
-    right: 10%;
-    top: 50px;
+    --node-rotation: -12deg;
+    left: 16%;
+    top: 82px;
+    z-index: 6;
     animation-delay: 0.4s;
 }
 
 .node-2 {
-    right: 10%;
-    top: 220px;
+    --node-rotation: -4deg;
+    left: 34%;
+    top: 42px;
+    z-index: 7;
     animation-delay: 0.6s;
 }
 
 .node-3 {
-    right: 10%;
-    top: 390px;
+    --node-rotation: 4deg;
+    left: 52%;
+    top: 42px;
+    z-index: 8;
     animation-delay: 0.8s;
 }
 
 .node-4 {
-    right: 10%;
-    top: 560px;
+    --node-rotation: 12deg;
+    left: 70%;
+    top: 82px;
+    z-index: 9;
     animation-delay: 1s;
 }
 
 @keyframes fadeInNode {
     from {
         opacity: 0;
-        transform: scale(0.8);
+        transform: rotate(var(--node-rotation, 0deg)) scale(0.8);
     }
     to {
         opacity: 1;
-        transform: scale(1);
+        transform: rotate(var(--node-rotation, 0deg)) scale(1);
     }
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .branch-visualization {
-        min-height: 800px;
+        min-height: 980px;
     }
     
     .person-silhouette {
+        bottom: 24px;
         left: 50%;
-        top: 50px;
+        top: auto;
         transform: translateX(-50%);
     }
     
@@ -324,7 +337,8 @@ body {
         display: flex;
         flex-direction: column;
         align-items: center;
-        margin-top: 300px;
+        margin-top: 40px;
+        padding-bottom: 280px;
         gap: 1rem;
     }
     
