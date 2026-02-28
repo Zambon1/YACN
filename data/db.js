@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const pool = ( {
+const pool = new Pool({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     database: process.env.DB_database,
@@ -11,4 +11,4 @@ const pool = ( {
     password: process.env.DB_PASSWORD
 });
 
-export default pool
+export default pool;
