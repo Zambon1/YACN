@@ -344,11 +344,17 @@ if (applicationForm) {
         
         try {
             // Submit to backend
+            const sessionToken = localStorage.getItem('session_token');
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            if (sessionToken) {
+                headers.Authorization = 'Bearer ' + sessionToken;
+            }
+
             const response = await fetch('http://localhost:5000/api/submit-application', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers,
                 body: JSON.stringify(data)
             });
             
@@ -396,6 +402,66 @@ document.querySelectorAll('input[type="tel"]').forEach(input => {
         e.target.value = value;
     });
 });
+
+// Get saved application data from localStorage
+function getSavedApplication() {
+    const user = getCurrentUser();
+    if (!user) return null;
+    
+    const applicationKey = `application_${user.id || user.email}`;
+    const saved = localStorage.getItem(applicationKey);
+    return saved ? JSON.parse(saved) : null;
+}
+
+// Populate form with saved application data
+function populateFormFromSavedApplication() {
+    const saved = getSavedApplication();
+    if (!saved || !saved.data) return false;
+    
+    const data = saved.data;
+    
+    // Populate all form fields with data from saved application
+    Object.keys(data).forEach(key => {
+        const field = document.getElementById(key);
+        if (field) {
+            field.value = data[key];
+        }
+    });
+    
+    return true;
+}
+
+// Handle editing an application
+if (window.location.pathname.endsWith('application.html') && sessionStorage.getItem('editingApplication') === 'true') {
+    sessionStorage.removeItem('editingApplication');
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Update button text to reflect editing
+        const form = document.getElementById('applicationForm');
+        if (form) {
+            const submitButton = form.querySelector('.submit-button');
+            if (submitButton) {
+                submitButton.textContent = 'Update and Find Matches';
+            }
+            
+            // Populate form with saved application data
+            setTimeout(() => {
+                if (populateFormFromSavedApplication()) {
+                    // Show edit notice
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'info-message';
+                    messageDiv.style.backgroundColor = '#e3f2fd';
+                    messageDiv.style.borderColor = '#1976d2';
+                    messageDiv.innerHTML = '<strong>📝 Editing Application</strong><br>Update your information below and submit to find new matches based on your updated criteria.';
+                    form.parentElement.insertBefore(messageDiv, form);
+                    
+                    // Scroll to notice
+                    messageDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 100);
+        }
+    });
+}
 
 // Show/hide pet number field based on pets selection
 const petsField = document.getElementById('pets');

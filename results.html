@@ -6,6 +6,37 @@
     <title>Your Matches - RentMatch</title>
     <link rel="stylesheet" href="styles.css">
     <style>
+        html {
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        
+        body {
+            overflow-x: hidden;
+            width: 100vw;
+            max-width: 100vw;
+            margin: 0;
+            padding: 0;
+            background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2400&q=80');
+            background-size: cover;
+            background-position: center center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .top-home-nav {
+            padding: 14px 20px 0;
+        }
+
+        .top-home-nav .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .top-home-nav .back-button {
+            display: inline-block;
+        }
+
         .results-hero {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
             color: white;
@@ -32,6 +63,70 @@
             font-size: 1.1rem;
         }
 
+        .filter-panel {
+            background: linear-gradient(135deg, #f8f9fa 0%, #f0f1f3 100%);
+            border-top: 2px solid var(--primary-color);
+            padding: 30px 20px;
+            margin: 20px 0;
+        }
+
+        .filter-panel h3 {
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            background: white;
+            color: var(--text-dark);
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.1);
+        }
+
+        .secondary-button {
+            background: #e5e7eb;
+            color: var(--text-dark);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .secondary-button:hover {
+            background: #d1d5db;
+        }
+
         .matches-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -52,6 +147,37 @@
             color: var(--text-light);
             font-size: 1.1rem;
             margin-bottom: 30px;
+        }
+
+        .no-match-reasons {
+            max-width: 620px;
+            margin: 0 auto 1.5rem;
+            text-align: left;
+            background: #fff7f4;
+            border: 1px solid #f4d2c6;
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+        }
+
+        .no-match-reasons h3 {
+            margin-bottom: 0.6rem;
+            color: var(--text-dark);
+            font-size: 1rem;
+        }
+
+        .no-match-reasons ul {
+            margin: 0;
+            padding-left: 1.2rem;
+        }
+
+        .no-match-reasons li {
+            margin: 0.35rem 0;
+            color: var(--text-dark);
+        }
+
+        .no-match-reasons li span {
+            color: var(--text-light);
+            font-size: 0.9rem;
         }
 
         .apartment-card {
@@ -116,7 +242,7 @@
         }
 
         .match-badge.good {
-            background: #f59e0b;
+            background: #22c55e;
         }
 
         .apartment-address {
@@ -434,6 +560,97 @@
             color: white;
         }
 
+        .matches-container.grid-view {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .matches-container.grid-view .apartment-card {
+            margin-bottom: 0;
+            position: relative;
+            height: 420px;
+        }
+
+        .matches-container.grid-view .apartment-card:hover {
+            transform: none;
+        }
+
+        .matches-container.grid-view .apartment-card-content {
+            grid-template-columns: 1fr;
+            height: 100%;
+        }
+
+        .matches-container.grid-view .apartment-image {
+            height: 220px;
+            transition: transform 0.3s ease;
+            transform-origin: center;
+        }
+
+        .matches-container.grid-view .apartment-card:hover .apartment-image,
+        .matches-container.grid-view .apartment-card:focus-within .apartment-image {
+            transform: scale(1.06);
+        }
+
+        .apartment-summary {
+            margin-bottom: 16px;
+        }
+
+        .primary-price {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .matches-container.grid-view .apartment-details {
+            padding: 20px;
+            position: relative;
+        }
+
+        .matches-container.grid-view .apartment-summary {
+            margin-bottom: 0;
+        }
+
+        .matches-container.grid-view .apartment-address {
+            margin-bottom: 12px;
+        }
+
+        .matches-container.grid-view .apartment-hover-details {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            padding: 0 20px;
+            transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.25s ease;
+        }
+
+        .matches-container.grid-view .apartment-card:hover .apartment-hover-details,
+        .matches-container.grid-view .apartment-card:focus-within .apartment-hover-details {
+            max-height: 280px;
+            opacity: 1;
+            padding: 14px 20px 18px;
+        }
+
+        .matches-container.list-view {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: block !important;
+        }
+
+        .matches-container.list-view .apartment-hover-details {
+            max-height: none;
+            opacity: 1;
+            overflow: visible;
+        }
+
         @media (max-width: 768px) {
             .apartment-card-content {
                 grid-template-columns: 1fr;
@@ -471,6 +688,12 @@
         </div>
     </nav>
 
+    <div class="top-home-nav">
+        <div class="container">
+            <a href="index.html" class="back-button">← Home</a>
+        </div>
+    </div>
+
     <section class="results-hero">
         <div class="container">
             <h1>Your Apartment Matches</h1>
@@ -481,16 +704,61 @@
         <!-- Populated by JavaScript -->
     </div>
 
+    <div class="filter-panel" id="filterPanel" style="display: none;">
+        <div class="container">
+            <h3>Filter Results</h3>
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label for="filterCity">City</label>
+                    <select id="filterCity">
+                        <option value="">Any city</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterState">State</label>
+                    <input type="text" id="filterState" placeholder="Any state">
+                </div>
+                <div class="filter-group">
+                    <label for="filterBedrooms">Bedrooms</label>
+                    <select id="filterBedrooms">
+                        <option value="">Any</option>
+                        <option value="studio">Studio</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4+</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterBathrooms">Bathrooms</label>
+                    <select id="filterBathrooms">
+                        <option value="">Any</option>
+                        <option value="1">1</option>
+                        <option value="1.5">1.5</option>
+                        <option value="2">2</option>
+                        <option value="2.5">2.5+</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterMaxRent">Max Monthly Rent</label>
+                    <input type="number" id="filterMaxRent" placeholder="No limit" min="0">
+                </div>
+                <div class="filter-group">
+                    <label for="filterMoveInDate">Move-In After</label>
+                    <input type="date" id="filterMoveInDate">
+                </div>
+            </div>
+            <button id="applyFiltersBtn" class="cta-button" onclick="applyFilters()">Apply Filters</button>
+            <button id="clearFiltersBtn" class="secondary-button" onclick="clearFilters()" style="margin-left: 10px;">Clear All</button>
+        </div>
+    </div>
+
     <div class="view-toggle">
-        <button class="toggle-button active" onclick="switchView('tree')" id="treeViewBtn">🌳 Tree View</button>
+        <button class="toggle-button active" onclick="switchView('grid')" id="gridViewBtn">🔲 Grid View</button>
         <button class="toggle-button" onclick="switchView('list')" id="listViewBtn">📋 List View</button>
     </div>
 
-    <div class="visualization-container" id="visualizationView" style="display: block;">
-        <!-- Tree visualization populated by JavaScript -->
-    </div>
-
-    <div class="matches-container" id="matchesContainer" style="display: none;">
+    <div class="matches-container grid-view" id="matchesContainer" style="display: block;">
         <!-- List view populated by JavaScript -->
     </div>
 
@@ -507,6 +775,7 @@
     <script>
         // Load results from sessionStorage
         const resultsData = JSON.parse(sessionStorage.getItem('matchResults'));
+        let allMatches = [];
 
         if (!resultsData) {
             window.location.href = 'index.html';
@@ -517,48 +786,123 @@
         function displayResults(data) {
             const summaryDiv = document.getElementById('resultsSummary');
             const matchesDiv = document.getElementById('matchesContainer');
+            const filterPanel = document.getElementById('filterPanel');
+
+            // Store all matches for filtering
+            allMatches = data.matches || [];
+
+            // Create a mapping of cities to states
+            const cityToStateMap = {};
+            allMatches.forEach(apt => {
+                cityToStateMap[apt.city] = apt.state;
+            });
+
+            // Populate city dropdown with unique cities from matches
+            const uniqueCities = [...new Set(allMatches.map(apt => apt.city))].sort();
+            const citySelect = document.getElementById('filterCity');
+            uniqueCities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                citySelect.appendChild(option);
+            });
+
+            // Add event listener to auto-fill state when city is selected
+            citySelect.addEventListener('change', function() {
+                const selectedCity = this.value;
+                const stateField = document.getElementById('filterState');
+                
+                if (selectedCity && cityToStateMap[selectedCity]) {
+                    stateField.value = cityToStateMap[selectedCity];
+                } else {
+                    stateField.value = '';
+                }
+            });
 
             // Display summary
             summaryDiv.innerHTML = `
-                <h2>Hello, ${data.applicant.name}!</h2>
-                <p>We found <strong>${data.count}</strong> apartment${data.count !== 1 ? 's' : ''} that match your qualifications.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <h2>Hello, ${data.applicant.name}!</h2>
+                        <p>We found <strong>${data.count}</strong> apartment${data.count !== 1 ? 's' : ''} that match your qualifications.</p>
+                    </div>
+                    <button class="cta-button" onclick="editApplication()" style="white-space: nowrap;">✏️ Edit Application</button>
+                </div>
             `;
+
+            // Show filter panel if there are matches
+            if (data.count > 0) {
+                filterPanel.style.display = 'block';
+            }
 
             // Display matches
             if (data.count === 0) {
+                const reasonList = Array.isArray(data.topRejectionReasons) && data.topRejectionReasons.length > 0
+                    ? `
+                        <div class="no-match-reasons">
+                            <h3>Top reasons you didn't match</h3>
+                            <ul>
+                                ${data.topRejectionReasons.map(item => `<li>${item.reason} <span>(${item.count} apartment${item.count !== 1 ? 's' : ''})</span></li>`).join('')}
+                            </ul>
+                        </div>
+                    `
+                    : '';
+
                 matchesDiv.innerHTML = `
                     <div class="no-matches">
                         <h2>No Matches Found</h2>
                         <p>Unfortunately, we couldn't find any apartments that match all your criteria.</p>
                         <p>Try adjusting your search preferences or budget.</p>
+                        ${reasonList}
                         <a href="index.html" class="cta-button">Modify Search</a>
                     </div>
                 `;
             } else {
-                matchesDiv.innerHTML = data.matches.map(apartment => {
-                    const matchLevel = apartment.match_score >= 110 ? 'excellent' : 
-                                      apartment.match_score >= 105 ? 'great' : 'good';
-                    const matchText = apartment.match_score >= 110 ? 'Excellent Match' : 
-                                     apartment.match_score >= 105 ? 'Great Match' : 'Good Match';
+                renderMatches(allMatches);
+            }
+        }
 
-                    return `
-                        <div class="apartment-card">
-                            <div class="apartment-card-content">
-                                <img src="${apartment.image}" alt="${apartment.name}" class="apartment-image">
-                                <div class="apartment-details">
+        function renderMatches(matches) {
+            const matchesDiv = document.getElementById('matchesContainer');
+            
+            if (matches.length === 0) {
+                matchesDiv.innerHTML = `
+                    <div class="no-matches">
+                        <h2>No Results Match Your Filters</h2>
+                        <p>Try adjusting your filter criteria.</p>
+                        <button class="cta-button" onclick="clearFilters()">Clear Filters</button>
+                    </div>
+                `;
+                return;
+            }
+
+            matchesDiv.innerHTML = matches.map(apartment => {
+                const matchLevel = apartment.match_score >= 110 ? 'excellent' : 
+                                  apartment.match_score >= 105 ? 'great' : 'good';
+                const matchText = apartment.match_score >= 110 ? 'Excellent Match' : 
+                                 apartment.match_score >= 105 ? 'Great Match' : 'Good Match';
+
+                return `
+                    <div class="apartment-card">
+                        <div class="apartment-card-content">
+                            <img src="${apartment.image}" alt="${apartment.name}" class="apartment-image">
+                            <div class="apartment-details">
+                                <div class="apartment-summary">
+                                    <h3 class="apartment-name">${apartment.name}</h3>
+                                    <p class="apartment-address">📍 ${apartment.address}, ${apartment.city}, ${apartment.state}</p>
+                                    <div class="primary-price">
+                                        <span class="spec-label">Monthly Rent</span>
+                                        <span class="spec-value price">$${apartment.rent.toLocaleString()}</span>
+                                    </div>
+                                </div>
+
+                                <div class="apartment-hover-details">
                                     <div class="apartment-header">
-                                        <div>
-                                            <h3 class="apartment-name">${apartment.name}</h3>
-                                            <p class="apartment-address">📍 ${apartment.address}, ${apartment.city}, ${apartment.state}</p>
-                                        </div>
+                                        <div></div>
                                         <span class="match-badge ${matchLevel}">${matchText}</span>
                                     </div>
 
                                     <div class="apartment-specs">
-                                        <div class="spec-item">
-                                            <span class="spec-label">Monthly Rent</span>
-                                            <span class="spec-value price">$${apartment.rent.toLocaleString()}</span>
-                                        </div>
                                         <div class="spec-item">
                                             <span class="spec-label">Deposit</span>
                                             <span class="spec-value">$${apartment.deposit.toLocaleString()}</span>
@@ -605,9 +949,53 @@
                                 </div>
                             </div>
                         </div>
-                    `;
-                }).join('');
-            }
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function applyFilters() {
+            const filterCity = document.getElementById('filterCity').value;
+            const filterState = document.getElementById('filterState').value.toLowerCase();
+            const filterBedrooms = document.getElementById('filterBedrooms').value;
+            const filterBathrooms = document.getElementById('filterBathrooms').value;
+            const filterMaxRent = parseInt(document.getElementById('filterMaxRent').value) || Infinity;
+            const filterMoveInDate = document.getElementById('filterMoveInDate').value;
+
+            const filtered = allMatches.filter(apt => {
+                // City filter (exact match since it's a dropdown)
+                if (filterCity && apt.city !== filterCity) return false;
+
+                // State filter
+                if (filterState && !apt.state.toLowerCase().includes(filterState)) return false;
+
+                // Bedrooms filter
+                if (filterBedrooms && apt.bedrooms !== filterBedrooms) return false;
+
+                // Bathrooms filter
+                if (filterBathrooms && apt.bathrooms.toString() !== filterBathrooms) return false;
+
+                // Max rent filter
+                if (apt.rent > filterMaxRent) return false;
+
+                // Move-in date filter
+                if (filterMoveInDate && apt.available_date && apt.available_date < filterMoveInDate) return false;
+
+                return true;
+            });
+
+            renderMatches(filtered);
+        }
+
+        function clearFilters() {
+            document.getElementById('filterCity').value = '';
+            document.getElementById('filterState').value = '';
+            document.getElementById('filterBedrooms').value = '';
+            document.getElementById('filterBathrooms').value = '';
+            document.getElementById('filterMaxRent').value = '';
+            document.getElementById('filterMoveInDate').value = '';
+
+            renderMatches(allMatches);
         }
 
         function contactProperty(name) {
@@ -616,6 +1004,30 @@
 
         function saveForLater(name) {
             alert(`Saved ${name} to your favorites!\n\nIn production, this would save to your account.`);
+        }
+
+        function editApplication() {
+            // Set flag that we're editing, then go to application page
+            sessionStorage.setItem('editingApplication', 'true');
+            window.location.href = 'application.html';
+        }
+
+        function switchView(view) {
+            const matchesView = document.getElementById('matchesContainer');
+            const gridBtn = document.getElementById('gridViewBtn');
+            const listBtn = document.getElementById('listViewBtn');
+
+            if (view === 'grid') {
+                matchesView.classList.add('grid-view');
+                matchesView.classList.remove('list-view');
+                gridBtn.classList.add('active');
+                listBtn.classList.remove('active');
+            } else {
+                matchesView.classList.add('list-view');
+                matchesView.classList.remove('grid-view');
+                gridBtn.classList.remove('active');
+                listBtn.classList.add('active');
+            }
         }
     </script>
 </body>

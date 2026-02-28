@@ -1,1 +1,4 @@
 node_modules
+
+data/users.json
+data/applications.json
