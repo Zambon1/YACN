@@ -721,6 +721,88 @@ document.addEventListener('DOMContentLoaded', function() {
     signupConfirmPassword.addEventListener('input', validateSignupPasswords);
 }
 
+    // Real-time email availability check
+    const signupEmail = document.getElementById('signupEmail');
+    const emailStatusDiv = document.getElementById('emailStatus');
+    let emailCheckTimeout;
+    
+    if (signupEmail && emailStatusDiv) {
+        signupEmail.addEventListener('input', async function() {
+            clearTimeout(emailCheckTimeout);
+            const email = this.value.trim();
+            
+            if (!email || !email.includes('@')) {
+                emailStatusDiv.textContent = '';
+                emailStatusDiv.style.display = 'none';
+                this.style.borderColor = '';
+                return;
+            }
+            
+            emailCheckTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`http://localhost:5000/api/check-email?email=${encodeURIComponent(email)}`);
+                    const result = await response.json();
+                    
+                    if (!result.available) {
+                        emailStatusDiv.textContent = '✗ Email already in use';
+                        emailStatusDiv.style.color = '#ef4444';
+                        emailStatusDiv.style.display = 'block';
+                        signupEmail.style.borderColor = '#ef4444';
+                    } else {
+                        emailStatusDiv.textContent = '✓ Email available';
+                        emailStatusDiv.style.color = '#10b981';
+                        emailStatusDiv.style.display = 'block';
+                        signupEmail.style.borderColor = '#10b981';
+                    }
+                } catch (error) {
+                    emailStatusDiv.textContent = '';
+                    emailStatusDiv.style.display = 'none';
+                }
+            }, 500);
+        });
+    }
+
+    // Real-time username availability check
+    const signupUsername = document.getElementById('signupUsername');
+    const usernameStatusDiv = document.getElementById('usernameStatus');
+    let usernameCheckTimeout;
+    
+    if (signupUsername && usernameStatusDiv) {
+        signupUsername.addEventListener('input', async function() {
+            clearTimeout(usernameCheckTimeout);
+            const username = this.value.trim();
+            
+            if (!username || username.length < 3) {
+                usernameStatusDiv.textContent = '';
+                usernameStatusDiv.style.display = 'none';
+                this.style.borderColor = '';
+                return;
+            }
+            
+            usernameCheckTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`http://localhost:5000/api/check-username?username=${encodeURIComponent(username)}`);
+                    const result = await response.json();
+                    
+                    if (!result.available) {
+                        usernameStatusDiv.textContent = '✗ Username already taken';
+                        usernameStatusDiv.style.color = '#ef4444';
+                        usernameStatusDiv.style.display = 'block';
+                        signupUsername.style.borderColor = '#ef4444';
+                    } else {
+                        usernameStatusDiv.textContent = '✓ Username available';
+                        usernameStatusDiv.style.color = '#10b981';
+                        usernameStatusDiv.style.display = 'block';
+                        signupUsername.style.borderColor = '#10b981';
+                    }
+                } catch (error) {
+                    usernameStatusDiv.textContent = '';
+                    usernameStatusDiv.style.display = 'none';
+                }
+            }, 500);
+        });
+    }
+
     // Handle signup form submission
     if (signupForm) {
         signupForm.addEventListener('submit', async function(e) {
@@ -772,9 +854,34 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Signup successful, redirecting...');
                     window.location.href = consumePostLoginRedirect();
                 } else {
-                    // Show error message from backend
-                    errorDiv.textContent = result.error || 'Signup failed. Please try again.';
+                    // Handle specific error types with field highlighting
+                    const emailInput = document.getElementById('signupEmail');
+                    const usernameInput = document.getElementById('signupUsername');
+                    
+                    // Clear previous field styling
+                    emailInput.style.borderColor = '';
+                    usernameInput.style.borderColor = '';
+                    
+                    let errorMessage = result.error || 'Signup failed. Please try again.';
+                    
+                    // Handle error type from backend
+                    if (result.errorType === 'EMAIL_EXISTS') {
+                        emailInput.style.borderColor = '#ef4444';
+                        errorMessage = `❌ Email already in use: ${email}\n💡 Try a different email address or log in`;
+                    } else if (result.errorType === 'USERNAME_EXISTS') {
+                        usernameInput.style.borderColor = '#ef4444';
+                        errorMessage = `❌ Username already taken: ${username}\n💡 Try a different username`;
+                    } else if (result.error && result.error.toLowerCase().includes('email')) {
+                        emailInput.style.borderColor = '#ef4444';
+                        errorMessage = '❌ ' + result.error + '\n💡 Try a different email address';
+                    } else if (result.error && result.error.toLowerCase().includes('username')) {
+                        usernameInput.style.borderColor = '#ef4444';
+                        errorMessage = '❌ ' + result.error + '\n💡 Try a different username';
+                    }
+                    
+                    errorDiv.textContent = errorMessage;
                     errorDiv.style.display = 'block';
+                    errorDiv.style.whiteSpace = 'pre-line';
                 }
             } catch (error) {
                 console.error('Signup error:', error);
