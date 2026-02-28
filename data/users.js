@@ -8,37 +8,57 @@ import db from '../utils/db.js';
 
 export async function createUser(firstName, lastName, username, email, phone, password) {
     const client = await db.connect();
-
-    const {rows} = await client.query(`
-        INSERT INTO users (first_name, last_name, username, email, phone, password, settings_id, application_id, preferences_id, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *
-        `, [firstName, lastName, username, email, phone, password, null, null, null, Date().toISOString()]);
-
-    return rows[0];
+    try {
+        const {rows} = await client.query(`
+            INSERT INTO users (first_name, last_name, username, email, phone, password, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *
+        `, [firstName, lastName, username, email, phone, password]);
+        return rows[0];
+    } finally {
+        client.release();
+    }
 }
 
 export async function findUserByEmail(email) {
     const client = await db.connect();
-
-    const {rows} = await client.query(`
-        SELECT *
-        FROM users
-        WHERE email = $1`
-    , email);
-
-    return rows[0];
+    try {
+        const {rows} = await client.query(`
+            SELECT * FROM users WHERE email = $1
+        `, [email]);
+        return rows[0] || null;
+    } finally {
+        client.release();
+    }
 }
 
 export async function findUserByUsername(username) {
-        const client = await db.connect();
+    const client = await db.connect();
+    try {
+        const {rows} = await client.query(`
+            SELECT * FROM users WHERE username = $1
+        `, [username]);
+        return rows[0] || null;
+    } finally {
+        client.release();
+    }
+}
 
-    const {rows} = await client.query(`
-        SELECT *
-        FROM users
-        WHERE username = $1`
-    , username);
+export async function findUserById(id) {
+    const client = await db.connect();
+    try {
+        const {rows} = await client.query(`
+            SELECT * FROM users WHERE id = $1
+        `, [id]);
+        return rows[0] || null;
+    } finally {
+        client.release();
+    }
+}
 
-    return rows[0];
+export function getUserPublic(user) {
+    if (!user) return null;
+    const { password, ...publicUser } = user;
+    return publicUser;
 }
 
 // const __filename = fileURLToPath(import.meta.url);

@@ -5,12 +5,44 @@ import db from '../utils/db.js';
 import crypto from 'crypto';
 
 export async function createSession(userId) {
-    const token = crypto.randomBytes(64).toString('utf-8');
+    const token = crypto.randomBytes(64).toString('hex');
     const client = await db.connect();
-    await client.query(`
-        INSERT INTO sessions (user_id, token)
-        VALUES ($1, $2)
-        `, userId, token);
+    try {
+        await client.query(`
+            INSERT INTO sessions (user_id, token, created_at)
+            VALUES ($1, $2, NOW())
+        `, [userId, token]);
+        return token;
+    } finally {
+        client.release();
+    }
+}
+
+export async function getSession(token) {
+    const client = await db.connect();
+    try {
+        const {rows} = await client.query(`
+            SELECT s.*, u.id, u.email, u.username, u.first_name, u.last_name
+            FROM sessions s
+            JOIN users u ON s.user_id = u.id
+            WHERE s.token = $1
+        `, [token]);
+        return rows[0] || null;
+    } finally {
+        client.release();
+    }
+}
+
+export async function destroySession(token) {
+    const client = await db.connect();
+    try {
+        const {rowCount} = await client.query(`
+            DELETE FROM sessions WHERE token = $1
+        `, [token]);
+        return rowCount > 0;
+    } finally {
+        client.release();
+    }
 }
 
 

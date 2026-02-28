@@ -1,83 +1,104 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import db from '../utils/db.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const applicationsFilePath = path.join(__dirname, 'applications.json');
-
-export function loadApplications() {
+export async function createApplicationRecord(payload) {
+    const {userId, username, email, applicantData, matchCount, topRejectionReasons} = payload;
+    
+    const client = await db.connect();
     try {
-        if (fs.existsSync(applicationsFilePath)) {
-            const data = fs.readFileSync(applicationsFilePath, 'utf-8');
-            return JSON.parse(data);
+        // Check if application already exists for this user/email
+        let existingApp = null;
+        if (userId) {
+            const {rows} = await client.query(`
+                SELECT * FROM applications WHERE user_id = $1
+            `, [userId]);
+            existingApp = rows[0];
+        } else if (email) {
+            const {rows} = await client.query(`
+                SELECT * FROM applications WHERE email = $1
+            `, [email]);
+            existingApp = rows[0];
         }
-    } catch (error) {
-        console.error('Error loading applications:', error);
+
+        if (existingApp) {
+            // Update existing application
+            await client.query(`
+                UPDATE applications 
+                SET applicant_data = $1, match_count = $2, top_rejection_reasons = $3, updated_at = NOW()
+                WHERE id = $4
+            `, [JSON.stringify(applicantData), matchCount, JSON.stringify(topRejectionReasons), existingApp.id]);
+            
+            return {
+                id: existingApp.id,
+                userId,
+                username,
+                email,
+                applicantData,
+                matchCount,
+                topRejectionReasons
+            };
+        } else {
+            // Create new application
+            const {rows} = await client.query(`
+                INSERT INTO applications (user_id, username, email, applicant_data, match_count, top_rejection_reasons, created_at, updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+                RETURNING *
+            `, [userId || null, username || null, email, JSON.stringify(applicantData), matchCount, JSON.stringify(topRejectionReasons)]);
+            
+            return rows[0];
+        }
+    } finally {
+        client.release();
     }
-    return [];
 }
 
-function saveApplications() {
+export async function loadApplications() {
+    const client = await db.connect();
     try {
-        fs.writeFileSync(applicationsFilePath, JSON.stringify(applications, null, 2), 'utf-8');
-    } catch (error) {
-        console.error('Error saving applications:', error);
+        const {rows} = await client.query(`SELECT * FROM applications`);
+        return rows.map(row => ({
+            ...row,
+            applicantData: typeof row.applicant_data === 'string' ? JSON.parse(row.applicant_data) : row.applicant_data,
+            topRejectionReasons: typeof row.top_rejection_reasons === 'string' ? JSON.parse(row.top_rejection_reasons) : row.top_rejection_reasons
+        }));
+    } finally {
+        client.release();
     }
 }
 
-export const applications = loadApplications();
-
-export function createApplicationRecord(payload) {
-    const payloadEmail = payload?.email ? String(payload.email).toLowerCase() : null;
-
-    const existingIndex = applications.findIndex((application) => {
-        if (payload?.userId && application?.userId && application.userId === payload.userId) {
-            return true;
+export async function getApplicationByUserId(userId) {
+    const client = await db.connect();
+    try {
+        const {rows} = await client.query(`
+            SELECT * FROM applications WHERE user_id = $1
+        `, [userId]);
+        if (rows[0]) {
+            return {
+                ...rows[0],
+                applicantData: typeof rows[0].applicant_data === 'string' ? JSON.parse(rows[0].applicant_data) : rows[0].applicant_data,
+                topRejectionReasons: typeof rows[0].top_rejection_reasons === 'string' ? JSON.parse(rows[0].top_rejection_reasons) : rows[0].top_rejection_reasons
+            };
         }
-
-        if (payloadEmail && application?.email) {
-            return String(application.email).toLowerCase() === payloadEmail;
-        }
-
-        return false;
-    });
-
-    if (existingIndex !== -1) {
-        const existingRecord = applications[existingIndex];
-        const updatedRecord = {
-            ...existingRecord,
-            ...payload,
-            id: existingRecord.id,
-            createdAt: existingRecord.createdAt,
-            updatedAt: new Date().toISOString()
-        };
-
-        applications[existingIndex] = updatedRecord;
-        saveApplications();
-
-        return updatedRecord;
+        return null;
+    } finally {
+        client.release();
     }
+}
 
-    const maxExistingId = applications.reduce((maxId, application) => {
-        const numericId = Number.parseInt(application.id, 10);
-        if (Number.isNaN(numericId)) {
-            return maxId;
+export async function getApplicationByEmail(email) {
+    const client = await db.connect();
+    try {
+        const {rows} = await client.query(`
+            SELECT * FROM applications WHERE email = $1
+        `, [email]);
+        if (rows[0]) {
+            return {
+                ...rows[0],
+                applicantData: typeof rows[0].applicant_data === 'string' ? JSON.parse(rows[0].applicant_data) : rows[0].applicant_data,
+                topRejectionReasons: typeof rows[0].top_rejection_reasons === 'string' ? JSON.parse(rows[0].top_rejection_reasons) : rows[0].top_rejection_reasons
+            };
         }
-        return Math.max(maxId, numericId);
-    }, 0);
-
-    const id = (maxExistingId + 1).toString();
-
-    const record = {
-        id,
-        ...payload,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    };
-
-    applications.push(record);
-    saveApplications();
-
-    return record;
+        return null;
+    } finally {
+        client.release();
+    }
 }

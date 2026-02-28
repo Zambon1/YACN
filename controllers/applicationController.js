@@ -1,32 +1,29 @@
 import { APARTMENTS } from '../data/apartments.js';
-import { createApplicationRecord, loadApplications } from '../data/applications.js';
+import { createApplicationRecord, getApplicationByUserId, getApplicationByEmail } from '../data/applications.js';
 import { getSession } from '../data/sessions.js';
 import { checkQualification, calculateMatchScore } from '../utils/qualificationChecker.js';
 
 /**
  * Check if user has submitted an application
  */
-export const checkUserApplication = (req, res) => {
+export const checkUserApplication = async (req, res) => {
     try {
         const token = req.headers.authorization?.replace('Bearer ', '');
-        const session = token ? getSession(token) : null;
+        const session = token ? await getSession(token) : null;
 
-        const applications = loadApplications();
         let userApplication = null;
 
         // Primary check: by userId if logged in
-        if (session && session.userId) {
-            userApplication = applications.find(app => app.userId === session.userId);
+        if (session && session.user_id) {
+            userApplication = await getApplicationByUserId(session.user_id);
         }
 
-        // Fallback: check by email if no userId match or not logged in
-        if (!userApplication && session && session.email) {
-            userApplication = applications.find(app => app.email === session.email);
-        }
-
-        // Last resort: if we have an email from params/body, check by that
-        if (!userApplication && req.query?.email) {
-            userApplication = applications.find(app => app.email === req.query.email);
+        // Fallback: check by email from session or query params
+        if (!userApplication) {
+            const emailToCheck = session?.email || req.query?.email;
+            if (emailToCheck) {
+                userApplication = await getApplicationByEmail(emailToCheck);
+            }
         }
 
         res.json({ 
@@ -44,12 +41,12 @@ export const checkUserApplication = (req, res) => {
 /**
  * Handle application submission and return matching apartments
  */
-export const submitApplication = (req, res) => {
+export const submitApplication = async (req, res) => {
     try {
         const applicantData = req.body;
 
         const token = req.headers.authorization?.replace('Bearer ', '');
-        const session = token ? getSession(token) : null;
+        const session = token ? await getSession(token) : null;
 
         // Find matching apartments and collect rejection reasons
         const matches = [];
@@ -83,8 +80,8 @@ export const submitApplication = (req, res) => {
             .slice(0, 5)
             .map(([reason, count]) => ({ reason, count }));
 
-        createApplicationRecord({
-            userId: session?.userId || null,
+        await createApplicationRecord({
+            userId: session?.user_id || null,
             username: session?.username || null,
             email: session?.email || applicantData.email || null,
             applicantData,
@@ -104,6 +101,7 @@ export const submitApplication = (req, res) => {
         });
 
     } catch (error) {
+        console.error('submitApplication error:', error);
         res.status(400).json({
             success: false,
             error: error.message
