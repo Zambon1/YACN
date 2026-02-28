@@ -110,3 +110,18 @@ export async function deleteComplex(id) {
         throw error;
     }
 }
+export async function getComplexesByLeaserId(leaserId) {
+    try {
+        const result = await db.query(`
+            SELECT c.*, l.first_name, l.last_name, l.company, l.email as leaser_email 
+            FROM complex c
+            LEFT JOIN leaser l ON c.leaser_id = l.id
+            WHERE c.leaser_id = $1
+            ORDER BY c.city, c.us_state
+        `, [leaserId]);
+        return result.rows;
+    } catch (error) {
+        console.error('Error fetching complexes by leaser ID:', error);
+        throw error;
+    }
+}

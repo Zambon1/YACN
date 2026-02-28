@@ -33,19 +33,25 @@ export async function signup(req, res) {
             });
         }
 
+        // Check for duplicate email
         const existingEmail = await findUserByEmail(email);
         if (existingEmail) {
             return res.status(409).json({
                 success: false,
-                error: 'Email already registered'
+                error: `Email already registered: ${email}`,
+                errorType: 'EMAIL_EXISTS',
+                field: 'email'
             });
         }
 
+        // Check for duplicate username
         const existingUsername = await findUserByUsername(username);
         if (existingUsername) {
             return res.status(409).json({
                 success: false,
-                error: 'Username already taken'
+                error: `Username already taken: ${username}`,
+                errorType: 'USERNAME_EXISTS',
+                field: 'username'
             });
         }
 
@@ -184,6 +190,96 @@ export async function logout(req, res) {
         res.status(500).json({
             success: false,
             error: 'Error logging out'
+        });
+    }
+}
+/**
+ * Check if email is available (not already in use)
+ * GET /api/check-email?email=...
+ */
+export async function checkEmailAvailability(req, res) {
+    try {
+        const { email } = req.query;
+
+        if (!email) {
+            return res.status(400).json({
+                available: false,
+                error: 'Email is required'
+            });
+        }
+
+        if (!email.includes('@')) {
+            return res.status(400).json({
+                available: false,
+                error: 'Invalid email format'
+            });
+        }
+
+        const existingUser = await findUserByEmail(email);
+
+        res.json({
+            available: !existingUser,
+            email: email,
+            message: existingUser ? 'Email already in use' : 'Email is available'
+        });
+    } catch (error) {
+        console.error('Check email error:', error);
+        res.status(500).json({
+            available: null,
+            error: 'Error checking email availability'
+        });
+    }
+}
+
+/**
+ * Check if username is available (not already in use)
+ * GET /api/check-username?username=...
+ */
+export async function checkUsernameAvailability(req, res) {
+    try {
+        const { username } = req.query;
+
+        if (!username) {
+            return res.status(400).json({
+                available: false,
+                error: 'Username is required'
+            });
+        }
+
+        if (username.length < 3) {
+            return res.status(400).json({
+                available: false,
+                error: 'Username must be at least 3 characters'
+            });
+        }
+
+        if (username.length > 20) {
+            return res.status(400).json({
+                available: false,
+                error: 'Username must be less than 20 characters'
+            });
+        }
+
+        // Check for valid username format (alphanumeric and underscore only)
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            return res.status(400).json({
+                available: false,
+                error: 'Username can only contain letters, numbers, and underscores'
+            });
+        }
+
+        const existingUser = await findUserByUsername(username);
+
+        res.json({
+            available: !existingUser,
+            username: username,
+            message: existingUser ? 'Username already taken' : 'Username is available'
+        });
+    } catch (error) {
+        console.error('Check username error:', error);
+        res.status(500).json({
+            available: null,
+            error: 'Error checking username availability'
         });
     }
 }

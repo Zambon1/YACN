@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landlord Dashboard - RentMatch</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+            min-height: calc(100vh - 300px);
+        }
+
+        .dashboard-sidebar {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .dashboard-sidebar h3 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .dashboard-menu a {
+            display: block;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            background: var(--background-color);
+            border-left: 3px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-dark);
+            text-decoration: none;
+        }
+
+        .dashboard-menu a:hover {
+            background: #f0f0f0;
+            border-left-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .dashboard-menu a.active {
+            background: #e8f4f8;
+            border-left-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .dashboard-content {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-section {
+            display: none;
+        }
+
+        .dashboard-section.active {
+            display: block;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .section-header h2 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .complexes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .complex-card {
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .complex-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .complex-card h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--primary-color);
+        }
+
+        .complex-info {
+            margin: 1rem 0;
+            font-size: 0.95rem;
+            color: var(--text-light);
+        }
+
+        .complex-address {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin: 0.75rem 0;
+        }
+
+        .complex-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .btn-sm:hover {
+            background: var(--primary-color);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .form-section {
+            background: var(--background-color);
+            padding: 2rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+
+        .profile-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .profile-field {
+            background: var(--background-color);
+            padding: 1rem;
+            border-radius: 6px;
+        }
+
+        .profile-field label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-field p {
+            margin: 0;
+            color: var(--text-light);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-banner">
+        <div class="container">
+            <h1>🏠 RentMatch Landlord Dashboard</h1>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="/" onclick="logout(); return false;">Logout</a></li>
+            </ul>
+            <div class="user-profile">
+                <span id="profileUsername"></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="dashboard-container">
+            <!-- Sidebar Navigation -->
+            <div class="dashboard-sidebar">
+                <h3>Menu</h3>
+                <div class="dashboard-menu">
+                    <a class="menu-item active" data-section="profile" onclick="showSection('profile')">📋 Profile</a>
+                    <a class="menu-item" data-section="complexes" onclick="showSection('complexes')">🏢 My Properties</a>
+                    <a class="menu-item" data-section="add-complex" onclick="showSection('add-complex')">➕ Add Property</a>
+                    <a class="menu-item" data-section="requirements" onclick="showSection('requirements')">⚙️ Requirements</a>
+                    <a class="menu-item" data-section="applications" onclick="showSection('applications')">📝 Applications</a>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="dashboard-content">
+                <!-- Profile Section -->
+                <div class="dashboard-section active" id="profile">
+                    <div class="section-header">
+                        <h2>My Profile</h2>
+                    </div>
+                    <div class="profile-info">
+                        <div class="profile-field">
+                            <label>First Name</label>
+                            <p id="profileFirstName"></p>
+                        </div>
+                        <div class="profile-field">
+                            <label>Last Name</label>
+                            <p id="profileLastName"></p>
+                        </div>
+                        <div class="profile-field">
+                            <label>Email</label>
+                            <p id="profileEmail"></p>
+                        </div>
+                        <div class="profile-field">
+                            <label>Phone</label>
+                            <p id="profilePhone"></p>
+                        </div>
+                        <div class="profile-field">
+                            <label>Username</label>
+                            <p id="profileUsername2"></p>
+                        </div>
+                        <div class="profile-field">
+                            <label>Company</label>
+                            <p id="profileCompany"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Complexes Section -->
+                <div class="dashboard-section" id="complexes">
+                    <div class="section-header">
+                        <h2>My Properties</h2>
+                        <button class="btn-primary" onclick="showSection('add-complex')">Add New Property</button>
+                    </div>
+                    <div id="complexesList"></div>
+                </div>
+
+                <!-- Add Complex Section -->
+                <div class="dashboard-section" id="add-complex">
+                    <div class="section-header">
+                        <h2>Add New Property</h2>
+                    </div>
+                    <div class="form-section">
+                        <form id="addComplexForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="propertyName">Property Name *</label>
+                                    <input type="text" id="propertyName" name="propertyName" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="propertyStreet">Street Address *</label>
+                                    <input type="text" id="propertyStreet" name="propertyStreet" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="propertyCity">City *</label>
+                                    <input type="text" id="propertyCity" name="propertyCity" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="propertyState">State *</label>
+                                    <input type="text" id="propertyState" name="propertyState" placeholder="CA" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="propertyAreaCode">Area Code</label>
+                                    <input type="text" id="propertyAreaCode" name="propertyAreaCode" placeholder="415">
+                                </div>
+                            </div>
+                            <div class="error-message" id="complexError"></div>
+                            <button type="submit" class="btn-primary">Create Property</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Requirements Section -->
+                <div class="dashboard-section" id="requirements">
+                    <div class="section-header">
+                        <h2>Qualification Requirements</h2>
+                    </div>
+                    <div id="requirementsList"></div>
+                </div>
+
+                <!-- Applications Section -->
+                <div class="dashboard-section" id="applications">
+                    <div class="section-header">
+                        <h2>Applicant Applications</h2>
+                    </div>
+                    <div id="applicationsList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 RentMatch. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="landlord.js"></script>
+</body>
+</html>

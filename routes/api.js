@@ -1,7 +1,7 @@
 import express from 'express';
 import { submitApplication, checkUserApplication, getApplicationSubmission, compareApplicationToRequirements } from '../controllers/applicationController.js';
 import { getAllApartments, getApartmentById } from '../controllers/apartmentController.js';
-import { signup, login, getCurrentUser, logout } from '../controllers/authController.js';
+import { signup, login, getCurrentUser, logout, checkEmailAvailability, checkUsernameAvailability } from '../controllers/authController.js';
 import { getSettings, updateSettings, getPreferences, updatePreferences } from '../controllers/settingsController.js';
 import { searchUnits, getUnit } from '../controllers/unitsController.js';
 import {
@@ -12,6 +12,13 @@ import {
     checkApplicantMeetsRequirements,
     getAllRequirements
 } from '../controllers/requirementsController.js';
+import {
+    landlordSignup,
+    getLandlordProfile,
+    createLandlordComplex,
+    updateLandlordComplex,
+    deleteLandlordComplex
+} from '../controllers/landlordController.js';
 
 const router = express.Router();
 
@@ -20,6 +27,8 @@ router.post('/signup', signup);
 router.post('/login', login);
 router.get('/user', getCurrentUser);
 router.post('/logout', logout);
+router.get('/check-email', checkEmailAvailability);
+router.get('/check-username', checkUsernameAvailability);
 
 // Application routes
 router.get('/user-application', checkUserApplication);
@@ -50,5 +59,12 @@ router.get('/requirements/:complexId', getRequirements);
 router.put('/requirements/:complexId', updateRequirements);
 router.delete('/requirements/:complexId', deleteRequirements);
 router.post('/requirements/:complexId/check', checkApplicantMeetsRequirements);
+
+// Landlord routes
+router.post('/landlord/signup', landlordSignup);
+router.get('/landlord/profile', getLandlordProfile);
+router.post('/landlord/complex', createLandlordComplex);
+router.put('/landlord/complex/:complexId', updateLandlordComplex);
+router.delete('/landlord/complex/:complexId', deleteLandlordComplex);
 
 export default router;

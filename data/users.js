@@ -1,7 +1,7 @@
 // User database - PostgreSQL backend with UUID and enhanced features
 import db from '../utils/db.js';
 
-export async function createUser(firstName, lastName, username, email, phone, password) {
+export async function createUser(firstName, lastName, username, email, phone, password, role = 'renter') {
     const client = await db.connect();
     try {
         await client.query('BEGIN');
@@ -11,12 +11,12 @@ export async function createUser(firstName, lastName, username, email, phone, pa
         );
         const settingsId = settingsResult.rows[0].id;
 
-        // Create user first so preferences.user_id can reference it
+        // Create user with specified role (default: 'renter')
         const userResult = await client.query(`
             INSERT INTO users (first_name, last_name, username, email, phone, password_hash, settings_id, role)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *
-        `, [firstName, lastName, username, email, phone, password, settingsId, 'renter']);
+        `, [firstName, lastName, username, email, phone, password, settingsId, role]);
 
         const createdUser = userResult.rows[0];
 

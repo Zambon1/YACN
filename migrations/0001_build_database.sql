@@ -1,14 +1,14 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 --1 - USERS
-CREATE TABLE settings IF NOT EXISTS (
+CREATE TABLE IF NOT EXISTS settings (
   id SERIAL PRIMARY KEY,
   text_messages BOOLEAN,
   email_list BOOLEAN,
   dark_mode BOOLEAN
 );
 
-CREATE TABLE users IF NOT EXISTS (
+CREATE TABLE IF NOT EXISTS users  (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
@@ -23,14 +23,14 @@ CREATE TABLE users IF NOT EXISTS (
     created_at TIMESTAMP DEFAULT now()
 );
 
-CREATE TABLE sessions (
+CREATE TABLE IF NOT EXISTS sessions (
   id SERIAL PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   token TEXT UNIQUE NOT NULL,
   created_at TIMESTAMP DEFAULT now()
 );
 
-CREATE TABLE preferences IF NOT EXISTS (
+CREATE TABLE IF NOT EXISTS preferences (
   id SERIAL PRIMARY KEY,
   price_min INT,
   price_max INT,
@@ -42,7 +42,7 @@ CREATE TABLE preferences IF NOT EXISTS (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE guarantor IF NOT EXISTS (
+CREATE TABLE IF NOT EXISTS guarantor (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   monthly_income INT NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE guarantor IF NOT EXISTS (
   credit_score VARCHAR(255) CHECK (credit_score IN ('very poor', 'poor', 'fair', 'good', 'excellent'))
 );
 
-CREATE TABLE leaser IF NOT EXISTS (
+CREATE TABLE IF NOT EXISTS leaser (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   first_name VARCHAR(255) NOT NULL,
   last_name VARCHAR(255) NOT NULL,
@@ -59,7 +59,7 @@ CREATE TABLE leaser IF NOT EXISTS (
   email VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE complex IF NOT EXISTS (
+CREATE TABLE IF NOT EXISTS complex (
   id SERIAL PRIMARY KEY,
   leaser_id UUID REFERENCES leaser(id) ON DELETE CASCADE,
   us_state VARCHAR(255) NOT NULL,
@@ -69,7 +69,7 @@ CREATE TABLE complex IF NOT EXISTS (
   application_rules_id INT
 );
 
-CREATE TABLE unit IF NOT EXISTS (
+CREATE TABLE IF NOT EXISTS unit (
   id SERIAL PRIMARY KEY,
   complex_id INT REFERENCES complex(id) ON DELETE CASCADE,
   price INT NOT NULL,
@@ -79,7 +79,7 @@ CREATE TABLE unit IF NOT EXISTS (
   available BOOLEAN NOT NULL
 );
 
-CREATE TABLE applications IF NOT EXISTS (
+CREATE TABLE IF NOT EXISTS applications (
   id SERIAL PRIMARY KEY,
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   unit_id INT REFERENCES unit(id),
@@ -102,7 +102,7 @@ CREATE TABLE applications IF NOT EXISTS (
   criminal_record BOOLEAN
 );
 
-CREATE TABLE application_requirements IF NOT EXISTS (
+CREATE TABLE IF NOT EXISTS application_requirements (
   id SERIAL PRIMARY KEY,
   complex_id INT REFERENCES complex(id) ON DELETE CASCADE,
   first_name BOOLEAN,
