@@ -1,6 +1,6 @@
-// Authentication helpers
+// Authentication helpers - now using backend sessions
 function isLoggedIn() {
-    return localStorage.getItem('rentmatch_user') !== null;
+    return localStorage.getItem('session_token') !== null;
 }
 
 function getCurrentUser() {
@@ -8,29 +8,72 @@ function getCurrentUser() {
     return userJson ? JSON.parse(userJson) : null;
 }
 
-function setCurrentUser(user) {
+function setCurrentUser(user, token) {
     localStorage.setItem('rentmatch_user', JSON.stringify(user));
+    localStorage.setItem('session_token', token);
 }
 
 function logout() {
+    const token = localStorage.getItem('session_token');
+    
+    // Call logout endpoint to destroy session on backend
+    if (token) {
+        fetch('http://localhost:5000/api/logout', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        }).catch(err => console.error('Error logging out from server:', err));
+    }
+    
+    // Clear local storage
     localStorage.removeItem('rentmatch_user');
+    localStorage.removeItem('session_token');
     window.location.href = 'index.html';
 }
+
+// Update user profile display on page load
+function updateUserDisplay() {
+    const userProfile = document.querySelector('.user-profile');
+    if (!userProfile) return;
+    
+    const user = getCurrentUser();
+    if (user) {
+        userProfile.innerHTML = `
+            <div class="user-profile-trigger">
+                <span class="user-icon">👤</span>
+                <span class="user-display">${user.username}</span>
+                <span class="dropdown-arrow">▼</span>
+            </div>
+            <div class="user-dropdown">
+                <a href="application.html" class="dropdown-item">Application Status</a>
+                <a href="#" class="dropdown-item" id="settingsBtn">Settings</a>
+                <hr class="dropdown-divider">
+                <a href="#" class="dropdown-item logout-item" id="logoutDropdown">Logout</a>
+            </div>
+        `;
+        
+        // Add dropdown logout handler
+        const logoutDropdown = document.getElementById('logoutDropdown');
+        if (logoutDropdown) {
+            logoutDropdown.addEventListener('click', function(e) {
+                e.preventDefault();
+                logout();
+            });
+        }
+    } else {
+        userProfile.innerHTML = '<a href="login.html" class="login-btn">Login</a>';
+    }
+}
+
+// Update user display on page load
+document.addEventListener('DOMContentLoaded', updateUserDisplay);
 
 // Check authentication for application page
 if (window.location.pathname.endsWith('application.html')) {
     if (!isLoggedIn()) {
         window.location.href = 'login.html';
     }
-}
-
-// Logout button handler
-const logoutButton = document.getElementById('logoutButton');
-if (logoutButton) {
-    logoutButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        logout();
-    });
 }
 
 // Smooth scrolling for navigation links
@@ -115,6 +158,7 @@ function updateBranchLines() {
 
 // Call on page load and on resize
 window.addEventListener('load', () => {
+    updateUserDisplay();
     setTimeout(updateBranchLines, 100);
 });
 
@@ -277,7 +321,7 @@ if (signupPassword && signupConfirmPassword) {
 
 // Handle signup form submission
 if (signupForm) {
-    signupForm.addEventListener('submit', function(e) {
+    signupForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const email = document.getElementById('signupEmail').value;
@@ -290,46 +334,74 @@ if (signupForm) {
             return;
         }
         
-        // Create user account (in a real app, this would be sent to a server)
-        const user = {
-            email: email,
-            username: username,
-            // In a real app, never store passwords in plain text!
-            createdAt: new Date().toISOString()
-        };
-        
-        // Store user in localStorage
-        setCurrentUser(user);
-        
-        // Redirect to application page
-        window.location.href = 'application.html';
+        try {
+            // Send signup request to backend
+            const response = await fetch('http://localhost:5000/api/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email,
+                    username: username,
+                    password: password,
+                    confirmPassword: confirmPassword
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Store user and session token
+                setCurrentUser(result.user, result.token);
+                
+                // Redirect to application page
+                window.location.href = 'application.html';
+            } else {
+                alert('Signup failed: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Signup error:', error);
+            alert('Error signing up. Make sure the backend server is running.');
+        }
     });
 }
 
 // Handle login form submission
 if (loginForm) {
-    loginForm.addEventListener('submit', function(e) {
+    loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
         
-        // In a real app, this would validate against a server
-        // For now, we'll just check if any user exists in localStorage
-        const existingUser = getCurrentUser();
-        
-        if (!existingUser) {
-            alert('No account found. Please create an account first.');
-            return;
+        try {
+            // Send login request to backend
+            const response = await fetch('http://localhost:5000/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Store user and session token
+                setCurrentUser(result.user, result.token);
+                
+                // Redirect to application page
+                window.location.href = 'application.html';
+            } else {
+                alert('Login failed: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            alert('Error logging in. Make sure the backend server is running.');
         }
-        
-        // Simple validation - in real app, would check password on server
-        if (existingUser.email !== email) {
-            alert('Invalid email or password');
-            return;
-        }
-        
-        // Login successful
-        window.location.href = 'application.html';
     });
 }
