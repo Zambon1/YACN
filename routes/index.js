@@ -9,7 +9,11 @@ const router = express.Router();
 
 // Serve index.html for root path
 router.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'index.html'));
+    res.sendFile(path.resolve(__dirname, '..', 'public', 'index.html'), {
+        headers: {
+            'Content-Type': 'text/html'
+        }
+    });
 });
 
 export default router;

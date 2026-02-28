@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Matches - RentMatch</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        html {
+            overflow-x: hidden;
+            overflow-y: auto;
+            width: 100%;
+        }
+        
+        body {
+            overflow-x: hidden !important;
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2400&q=80');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 100% !important;
+            overflow-x: hidden;
+        }
+
+        .results-hero {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .results-hero .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .results-hero .back-button {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            color: var(--primary-color);
+            border: 2px solid white;
+            padding: 12px 24px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .results-hero .back-button:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .results-summary {
+            background: white;
+            padding: 30px;
+            margin: 40px auto;
+            max-width: 800px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-summary h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .results-summary p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .filter-panel {
+            background: linear-gradient(135deg, #f8f9fa 0%, #f0f1f3 100%);
+            border-top: 2px solid var(--primary-color);
+            padding: 30px 20px;
+            margin: 20px 0;
+        }
+
+        .filter-panel h3 {
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            background: white;
+            color: var(--text-dark);
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.1);
+        }
+
+        .secondary-button {
+            background: #e5e7eb;
+            color: var(--text-dark);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .secondary-button:hover {
+            background: #d1d5db;
+        }
+
+        .matches-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .no-matches {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .no-matches h2 {
+            color: var(--text-dark);
+            margin-bottom: 20px;
+        }
+
+        .no-matches p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        .no-match-reasons {
+            max-width: 620px;
+            margin: 0 auto 1.5rem;
+            text-align: left;
+            background: #fff7f4;
+            border: 1px solid #f4d2c6;
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+        }
+
+        .no-match-reasons h3 {
+            margin-bottom: 0.6rem;
+            color: var(--text-dark);
+            font-size: 1rem;
+        }
+
+        .no-match-reasons ul {
+            margin: 0;
+            padding-left: 1.2rem;
+        }
+
+        .no-match-reasons li {
+            margin: 0.35rem 0;
+            color: var(--text-dark);
+        }
+
+        .no-match-reasons li span {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .apartment-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .apartment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .apartment-card-content {
+            display: grid;
+            grid-template-columns: minmax(250px, 300px) 1fr;
+            gap: 0;
+        }
+
+        .apartment-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .apartment-details {
+            padding: 30px;
+        }
+
+        .apartment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .apartment-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 3px;
+        }
+
+        .match-badge {
+            background: var(--secondary-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .match-badge.excellent {
+            background: #10b981;
+        }
+
+        .match-badge.great {
+            background: #3b82f6;
+        }
+
+        .match-badge.good {
+            background: #22c55e;
+        }
+
+        .apartment-address {
+            color: var(--text-light);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+
+        .apartment-specs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .spec-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .spec-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 3px;
+        }
+
+        .spec-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .spec-value.price {
+            color: var(--primary-color);
+            font-size: 1.3rem;
+        }
+
+        .amenities {
+            margin-bottom: 20px;
+        }
+
+        .amenities h4 {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .amenity-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .amenity-tag {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .apartment-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-button {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .primary-action {
+            background: var(--primary-color);
+            color: white;
+            flex: 1;
+        }
+
+        .primary-action:hover {
+            background: var(--primary-dark);
+        }
+
+        .secondary-action {
+            background: white;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            flex: 1;
+        }
+
+        .secondary-action:hover {
+            background: var(--bg-light);
+        }
+
+        .back-button {
+            display: inline-block;
+            margin: 20px;
+            padding: 12px 24px;
+            background: white;
+            color: var(--primary-color);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            border: 2px solid var(--primary-color);
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Visualization Styles */
+        .visualization-container {
+            position: relative;
+            width: 100%;
+            min-height: 800px;
+            background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 60px 20px;
+            overflow-x: auto;
+        }
+
+        .person-silhouette {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 180px;
+            z-index: 10;
+        }
+
+        .person-head {
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            margin: 0 auto 5px;
+            box-shadow: 0 4px 12px rgba(217, 119, 87, 0.3);
+        }
+
+        .person-body {
+            width: 60px;
+            height: 80px;
+            background: var(--primary-color);
+            border-radius: 30px 30px 0 0;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(217, 119, 87, 0.3);
+        }
+
+        .person-arms {
+            position: absolute;
+            width: 100px;
+            height: 12px;
+            background: var(--primary-color);
+            border-radius: 6px;
+            top: 20px;
+            left: -20px;
+        }
+
+        .person-legs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .person-leg {
+            width: 20px;
+            height: 50px;
+            background: var(--primary-color);
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 12px rgba(217, 119, 87, 0.3);
+        }
+
+        .branches-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .branch-line {
+            stroke: var(--primary-color);
+            stroke-width: 3;
+            fill: none;
+            opacity: 0.6;
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawLine 2s ease-out forwards;
+        }
+
+        @keyframes drawLine {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .apartment-node {
+            position: absolute;
+            width: 280px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            transition: all 0.3s;
+            cursor: pointer;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .apartment-node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+            z-index: 100;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .node-image {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .node-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .node-details {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .node-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .node-match {
+            display: inline-block;
+            background: var(--secondary-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .node-amenities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 10px;
+        }
+
+        .node-amenity {
+            background: var(--bg-light);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--text-dark);
+        }
+
+        .view-toggle {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .toggle-button {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-button:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .toggle-button.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .results-message {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 16px;
+            max-width: 500px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            border: 1px solid black;
+            font-weight: 600;
+            display: none;
+            z-index: 10000;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .results-message.info {
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        .results-message.success {
+            background: #ecfdf5;
+            color: #166534;
+        }
+
+        .results-message.error {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .matches-container.grid-view {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .matches-container.grid-view .apartment-card {
+            margin-bottom: 0;
+            position: relative;
+            height: 420px;
+            overflow: visible;
+        }
+
+        .matches-container.grid-view .apartment-card:hover {
+            transform: none;
+        }
+
+        .matches-container.grid-view .apartment-card-content {
+            grid-template-columns: 1fr;
+            height: 100%;
+        }
+
+        .matches-container.grid-view .apartment-image {
+            height: 220px;
+            transition: transform 0.3s ease;
+            transform-origin: center;
+        }
+
+        .matches-container.grid-view .apartment-card:hover .apartment-image,
+        .matches-container.grid-view .apartment-card:focus-within .apartment-image {
+            transform: scale(1.06);
+        }
+
+        .apartment-summary {
+            margin-bottom: 16px;
+        }
+
+        .primary-price {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .matches-container.grid-view .apartment-details {
+            padding: 10px 16px 20px 16px;
+            position: relative;
+            overflow: visible;
+        }
+
+        .matches-container.grid-view .apartment-summary {
+            margin-bottom: 0;
+        }
+
+        .matches-container.grid-view .apartment-address {
+            margin-bottom: 4px;
+        }
+
+        .matches-container.grid-view .apartment-hover-details {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            padding: 0 20px;
+            transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.25s ease;
+            z-index: 1000;
+            column-count: 2;
+            column-gap: 16px;
+        }
+
+        .matches-container.grid-view .apartment-card:hover .apartment-hover-details,
+        .matches-container.grid-view .apartment-card:focus-within .apartment-hover-details {
+            max-height: 600px;
+            opacity: 1;
+            padding: 14px 20px 18px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .matches-container.grid-view .apartment-hover-details > * {
+            break-inside: avoid;
+        }
+
+        .matches-container.grid-view .apartment-actions {
+            column-span: all;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .matches-container.list-view {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: block !important;
+        }
+
+        .matches-container.list-view .apartment-hover-details {
+            max-height: none;
+            opacity: 1;
+            overflow: visible;
+        }
+
+        @media (max-width: 768px) {
+            .apartment-card-content {
+                grid-template-columns: 1fr;
+            }
+
+            .apartment-image {
+                height: 200px;
+            }
+
+            .apartment-actions {
+                flex-direction: column;
+            }
+
+            .apartment-node {
+                width: 200px;
+                padding: 15px;
+            }
+
+            .node-image {
+                height: 100px;
+            }
+
+            .visualization-container {
+                min-height: 1000px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <h1>🏠 RentMatch</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li id="resultsApplyNowNavItem"><a href="application.html">Apply Now</a></li>
+            </ul>
+            <div class="user-profile"></div>
+        </div>
+    </nav>
+
+    <section class="results-hero">
+        <div class="container">
+            <h1>Your Apartment Matches</h1>
+        </div>
+    </section>
+
+    <div class="results-summary" id="resultsSummary">
+        <!-- Populated by JavaScript -->
+    </div>
+
+    <div class="filter-panel" id="filterPanel" style="display: none;">
+        <div class="container">
+            <h3>Filter Results</h3>
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label for="filterCity">City</label>
+                    <select id="filterCity">
+                        <option value="">Any city</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterState">State</label>
+                    <select id="filterState">
+                        <option value="">Any state</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterBedrooms">Bedrooms</label>
+                    <select id="filterBedrooms">
+                        <option value="">Any</option>
+                        <option value="studio">Studio</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4+</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterBathrooms">Bathrooms</label>
+                    <select id="filterBathrooms">
+                        <option value="">Any</option>
+                        <option value="1">1</option>
+                        <option value="1.5">1.5</option>
+                        <option value="2">2</option>
+                        <option value="2.5">2.5+</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterMaxRent">Max Monthly Rent</label>
+                    <input type="number" id="filterMaxRent" placeholder="No limit" min="0">
+                </div>
+                <div class="filter-group">
+                    <label for="filterMoveInDate">Move-In After</label>
+                    <input type="date" id="filterMoveInDate">
+                </div>
+            </div>
+            <button id="applyFiltersBtn" class="cta-button" onclick="applyFilters()">Apply Filters</button>
+            <button id="clearFiltersBtn" class="secondary-button" onclick="clearFilters()" style="margin-left: 10px;">Clear All</button>
+        </div>
+    </div>
+
+    <div class="view-toggle">
+        <button class="toggle-button active" onclick="switchView('grid')" id="gridViewBtn">🔲 Grid View</button>
+        <button class="toggle-button" onclick="switchView('list')" id="listViewBtn">📋 List View</button>
+        <button class="toggle-button" onclick="showAppliedList()" id="appliedViewBtn">✅ Applied (0)</button>
+        <button class="toggle-button" onclick="showSavedList()" id="savedViewBtn">💾 Saved (0)</button>
+    </div>
+
+    <div id="resultsActionMessage" class="results-message info" role="status" aria-live="polite"></div>
+
+    <div class="matches-container grid-view" id="matchesContainer" style="display: block;">
+        <!-- List view populated by JavaScript -->
+    </div>
+
+    <div style="text-align: center; padding-bottom: 40px;">
+        <a href="index.html" class="back-button">← Start New Search</a>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 RentMatch. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Hide Apply Now nav item for logged-in users on results page
+        const hasSession = localStorage.getItem('session_token') !== null;
+        if (hasSession) {
+            const applyNowNavItem = document.getElementById('resultsApplyNowNavItem');
+            if (applyNowNavItem) {
+                applyNowNavItem.remove();
+            }
+        }
+
+        // Load results from sessionStorage
+        const resultsData = JSON.parse(sessionStorage.getItem('matchResults'));
+        let allMatches = [];
+        let savedMatches = [];
+        let appliedMatches = [];
+        let showingSavedList = false;
+        let showingAppliedList = false;
+        let currentResultsMatches = [];
+        let currentViewMode = 'grid';
+        let messageTimeoutId = null;
+
+        function showResultsMessage(message, type = 'info') {
+            const messageBox = document.getElementById('resultsActionMessage');
+            if (!messageBox) return;
+
+            messageBox.textContent = message;
+            messageBox.className = `results-message ${type}`;
+            messageBox.style.display = 'block';
+
+            if (messageTimeoutId) {
+                clearTimeout(messageTimeoutId);
+            }
+
+            messageTimeoutId = setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 4000);
+        }
+
+        function getSavedStorageKey() {
+            try {
+                const user = JSON.parse(localStorage.getItem('rentmatch_user') || 'null');
+                if (user) {
+                    return `saved_properties_${user.id || user.email}`;
+                }
+            } catch (error) {
+                console.error('Error reading user for saved properties:', error);
+            }
+            return 'saved_properties_guest';
+        }
+
+        function loadSavedMatches() {
+            try {
+                const rawSaved = localStorage.getItem(getSavedStorageKey());
+                const parsedSaved = rawSaved ? JSON.parse(rawSaved) : [];
+                savedMatches = Array.isArray(parsedSaved) ? parsedSaved : [];
+            } catch (error) {
+                console.error('Error loading saved properties:', error);
+                savedMatches = [];
+            }
+            updateSavedButtonLabel();
+        }
+
+        function persistSavedMatches() {
+            localStorage.setItem(getSavedStorageKey(), JSON.stringify(savedMatches));
+            updateSavedButtonLabel();
+        }
+
+        function updateSavedButtonLabel() {
+            const savedBtn = document.getElementById('savedViewBtn');
+            if (savedBtn) {
+                savedBtn.textContent = `💾 Saved (${savedMatches.length})`;
+            }
+        }
+
+        function setSavedButtonActive(active) {
+            const savedBtn = document.getElementById('savedViewBtn');
+            if (!savedBtn) return;
+
+            if (active) {
+                savedBtn.classList.add('active');
+            } else {
+                savedBtn.classList.remove('active');
+            }
+        }
+
+        function getAppliedStorageKey() {
+            try {
+                const user = JSON.parse(localStorage.getItem('rentmatch_user') || 'null');
+                if (user) {
+                    return `applied_properties_${user.id || user.email}`;
+                }
+            } catch (error) {
+                console.error('Error reading user for applied properties:', error);
+            }
+            return 'applied_properties_guest';
+        }
+
+        function loadAppliedMatches() {
+            try {
+                const rawApplied = localStorage.getItem(getAppliedStorageKey());
+                const parsedApplied = rawApplied ? JSON.parse(rawApplied) : [];
+                appliedMatches = Array.isArray(parsedApplied) ? parsedApplied : [];
+            } catch (error) {
+                console.error('Error loading applied properties:', error);
+                appliedMatches = [];
+            }
+            updateAppliedButtonLabel();
+        }
+
+        function persistAppliedMatches() {
+            localStorage.setItem(getAppliedStorageKey(), JSON.stringify(appliedMatches));
+            updateAppliedButtonLabel();
+        }
+
+        function updateAppliedButtonLabel() {
+            const appliedBtn = document.getElementById('appliedViewBtn');
+            if (appliedBtn) {
+                appliedBtn.textContent = `✅ Applied (${appliedMatches.length})`;
+            }
+        }
+
+        function setAppliedButtonActive(active) {
+            const appliedBtn = document.getElementById('appliedViewBtn');
+            if (!appliedBtn) return;
+
+            if (active) {
+                appliedBtn.classList.add('active');
+            } else {
+                appliedBtn.classList.remove('active');
+            }
+        }
+
+        function setActiveViewButton(mode) {
+            const gridBtn = document.getElementById('gridViewBtn');
+            const listBtn = document.getElementById('listViewBtn');
+
+            if (gridBtn) {
+                gridBtn.classList.toggle('active', mode === 'grid');
+            }
+            if (listBtn) {
+                listBtn.classList.toggle('active', mode === 'list');
+            }
+
+            setAppliedButtonActive(mode === 'applied');
+            setSavedButtonActive(mode === 'saved');
+        }
+
+        loadSavedMatches();
+        loadAppliedMatches();
+
+        if (!resultsData) {
+            window.location.href = 'index.html';
+        } else {
+            displayResults(resultsData);
+        }
+
+        function displayResults(data) {
+            const summaryDiv = document.getElementById('resultsSummary');
+            const matchesDiv = document.getElementById('matchesContainer');
+            const filterPanel = document.getElementById('filterPanel');
+
+            // Store all matches for filtering
+            allMatches = data.matches || [];
+
+            // Create mappings of cities to states and states to cities
+            const cityToStateMap = {};
+            const stateMap = {};
+            allMatches.forEach(apt => {
+                cityToStateMap[apt.city] = apt.state;
+                
+                if (!stateMap[apt.state]) {
+                    stateMap[apt.state] = [];
+                }
+                if (!stateMap[apt.state].includes(apt.city)) {
+                    stateMap[apt.state].push(apt.city);
+                }
+            });
+
+            // Populate state dropdown with unique states
+            const uniqueStates = Object.keys(stateMap).sort();
+            const stateSelect = document.getElementById('filterState');
+            uniqueStates.forEach(state => {
+                const option = document.createElement('option');
+                option.value = state;
+                option.textContent = state;
+                stateSelect.appendChild(option);
+            });
+
+            // Populate city dropdown with all unique cities initially
+            const citySelect = document.getElementById('filterCity');
+            const uniqueCities = [...new Set(allMatches.map(apt => apt.city))].sort();
+            uniqueCities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                citySelect.appendChild(option);
+            });
+
+            // Helper function to update city options based on selected state
+            function updateCityOptions() {
+                const selectedState = stateSelect.value;
+                const currentCityValue = citySelect.value;
+                
+                // Clear city options except the default
+                while (citySelect.options.length > 1) {
+                    citySelect.remove(1);
+                }
+                
+                let citiesToShow = [];
+                if (selectedState) {
+                    citiesToShow = (stateMap[selectedState] || []).sort();
+                } else {
+                    citiesToShow = uniqueCities;
+                }
+                
+                citiesToShow.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                });
+                
+                // If the previously selected city is still available, keep it selected
+                if (currentCityValue && [...citySelect.options].some(opt => opt.value === currentCityValue)) {
+                    citySelect.value = currentCityValue;
+                } else {
+                    citySelect.value = '';
+                }
+            }
+
+            // Add event listener for state selection
+            stateSelect.addEventListener('change', updateCityOptions);
+
+            // Add event listener to auto-fill state when city is selected
+            citySelect.addEventListener('change', function() {
+                const selectedCity = this.value;
+                
+                if (selectedCity && cityToStateMap[selectedCity]) {
+                    stateSelect.value = cityToStateMap[selectedCity];
+                } else {
+                    stateSelect.value = '';
+                }
+            });
+
+            // Display summary
+            summaryDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <h2>Hello, ${data.applicant.name}!</h2>
+                        <p>We found <strong>${data.count}</strong> apartment${data.count !== 1 ? 's' : ''} that match your qualifications.</p>
+                    </div>
+                    <button class="cta-button" onclick="editApplication()" style="white-space: nowrap;">✏️ Edit Application</button>
+                </div>
+            `;
+
+            // Show filter panel if there are matches
+            if (data.count > 0) {
+                filterPanel.style.display = 'block';
+            }
+
+            // Display matches
+            if (data.count === 0) {
+                const reasonList = Array.isArray(data.topRejectionReasons) && data.topRejectionReasons.length > 0
+                    ? `
+                        <div class="no-match-reasons">
+                            <h3>Top reasons you didn't match</h3>
+                            <ul>
+                                ${data.topRejectionReasons.map(item => `<li>${item.reason} <span>(${item.count} apartment${item.count !== 1 ? 's' : ''})</span></li>`).join('')}
+                            </ul>
+                        </div>
+                    `
+                    : '';
+
+                matchesDiv.innerHTML = `
+                    <div class="no-matches">
+                        <h2>No Matches Found</h2>
+                        <p>Unfortunately, we couldn't find any apartments that match all your criteria.</p>
+                        <p>Try adjusting your search preferences or budget.</p>
+                        ${reasonList}
+                        <a href="index.html" class="cta-button">Modify Search</a>
+                    </div>
+                `;
+            } else {
+                renderMatches(allMatches);
+            }
+        }
+
+        function renderMatches(matches, isSavedView = false, isAppliedView = false) {
+            const matchesDiv = document.getElementById('matchesContainer');
+            showingSavedList = isSavedView;
+            showingAppliedList = isAppliedView;
+
+            if (!isSavedView && !isAppliedView) {
+                currentResultsMatches = matches;
+            }
+
+            setActiveViewButton(isAppliedView ? 'applied' : isSavedView ? 'saved' : currentViewMode);
+            
+            if (matches.length === 0) {
+                matchesDiv.innerHTML = `
+                    <div class="no-matches">
+                        <h2>${isAppliedView ? 'No Applications Yet' : isSavedView ? 'No Saved Properties Yet' : 'No Results Match Your Filters'}</h2>
+                        <p>${isAppliedView ? 'Click Send Application on a property to add it here.' : isSavedView ? 'Click Save for Later on a property to add it here.' : 'Try adjusting your filter criteria.'}</p>
+                        ${isSavedView || isAppliedView ? '' : '<button class="cta-button" onclick="clearFilters()">Clear Filters</button>'}
+                    </div>
+                `;
+                return;
+            }
+
+            matchesDiv.innerHTML = matches.map(apartment => {
+                const matchLevel = apartment.match_score >= 110 ? 'excellent' : 
+                                  apartment.match_score >= 105 ? 'great' : 'good';
+                const matchText = apartment.match_score >= 110 ? 'Excellent Match' : 
+                                 apartment.match_score >= 105 ? 'Great Match' : 'Good Match';
+
+                return `
+                    <div class="apartment-card">
+                        <div class="apartment-card-content">
+                            <img src="${apartment.image}" alt="${apartment.name}" class="apartment-image">
+                            <div class="apartment-details">
+                                <div class="apartment-summary">
+                                    <h3 class="apartment-name">${apartment.name}</h3>
+                                    <p class="apartment-address">📍 ${apartment.address}, ${apartment.city}, ${apartment.state}</p>
+                                    <div class="primary-price">
+                                        <span class="spec-label">Monthly Rent</span>
+                                        <span class="spec-value price">$${apartment.rent.toLocaleString()}</span>
+                                    </div>
+                                </div>
+
+                                <div class="apartment-hover-details">
+                                    <div class="apartment-header">
+                                        <div></div>
+                                        <span class="match-badge ${matchLevel}">${matchText}</span>
+                                    </div>
+
+                                    <div class="apartment-specs">
+                                        <div class="spec-item">
+                                            <span class="spec-label">Deposit</span>
+                                            <span class="spec-value">$${apartment.deposit.toLocaleString()}</span>
+                                        </div>
+                                        <div class="spec-item">
+                                            <span class="spec-label">Bedrooms</span>
+                                            <span class="spec-value">${apartment.bedrooms === 'studio' ? 'Studio' : apartment.bedrooms}</span>
+                                        </div>
+                                        <div class="spec-item">
+                                            <span class="spec-label">Bathrooms</span>
+                                            <span class="spec-value">${apartment.bathrooms}</span>
+                                        </div>
+                                    </div>
+
+                                    ${apartment.amenities && apartment.amenities.length > 0 ? `
+                                        <div class="amenities">
+                                            <h4>Amenities</h4>
+                                            <div class="amenity-tags">
+                                                ${apartment.amenities.map(amenity => `
+                                                    <span class="amenity-tag">${amenity}</span>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
+                                    ${apartment.pets_allowed ? `
+                                        <div class="amenities">
+                                            <h4>Pet Policy</h4>
+                                            <div class="amenity-tags">
+                                                <span class="amenity-tag">🐾 Pets Allowed (Max: ${apartment.max_pets})</span>
+                                                <span class="amenity-tag">Pet Deposit: $${apartment.pet_deposit}</span>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
+                                    <div class="apartment-actions">
+                                        ${isAppliedView ? `
+                                            <button class="action-button primary-action" onclick="checkApplication('${apartment.name}')">
+                                                Check Application
+                                            </button>
+                                        ` : `
+                                            <button class="action-button primary-action" onclick="sendApplication('${apartment.name}')">
+                                                Send Application
+                                            </button>
+                                        `}
+                                        ${isAppliedView ? `
+                                            <button class="action-button secondary-action" onclick="removeFromApplied('${apartment.name}')">
+                                                Remove Application
+                                            </button>
+                                        ` : isSavedView ? `
+                                            <button class="action-button secondary-action" onclick="removeFromSaved('${apartment.name}')">
+                                                Remove from Saved
+                                            </button>
+                                        ` : `
+                                            <button class="action-button secondary-action" onclick="saveForLater('${apartment.name}')">
+                                                Save for Later
+                                            </button>
+                                        `}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function applyFilters() {
+            const filterCity = document.getElementById('filterCity').value;
+            const filterState = document.getElementById('filterState').value;
+            const filterBedrooms = document.getElementById('filterBedrooms').value;
+            console.log('Filter Bedrooms value:', filterBedrooms);
+            console.log('All matches bedrooms values:', allMatches.map(apt => apt.bedrooms));
+            const filterBathrooms = document.getElementById('filterBathrooms').value;
+            const filterMaxRent = parseInt(document.getElementById('filterMaxRent').value) || Infinity;
+            const filterMoveInDate = document.getElementById('filterMoveInDate').value;
+
+            const filtered = allMatches.filter(apt => {
+                // City filter (exact match since it's a dropdown)
+                if (filterCity && apt.city !== filterCity) return false;
+
+                // State filter (exact match since it's a dropdown)
+                if (filterState && apt.state !== filterState) return false;
+
+                // Bedrooms filter (compare integers and strings together)
+                if (filterBedrooms && apt.bedrooms != filterBedrooms) return false;
+
+                // Bathrooms filter
+                if (filterBathrooms && apt.bathrooms != filterBathrooms) return false;
+
+                // Max rent filter
+                if (apt.rent > filterMaxRent) return false;
+
+                // Move-in date filter
+                if (filterMoveInDate && apt.available_date && apt.available_date < filterMoveInDate) return false;
+
+                return true;
+            });
+
+            renderMatches(filtered);
+        }
+
+        function clearFilters() {
+            document.getElementById('filterCity').value = '';
+            document.getElementById('filterState').value = '';
+            document.getElementById('filterBedrooms').value = '';
+            document.getElementById('filterBathrooms').value = '';
+            document.getElementById('filterMaxRent').value = '';
+            document.getElementById('filterMoveInDate').value = '';
+
+            updateCityOptions();
+            renderMatches(allMatches);
+        }
+
+        function showSavedList() {
+            renderMatches(savedMatches, true, false);
+        }
+
+        function showAppliedList() {
+            renderMatches(appliedMatches, false, true);
+        }
+
+        function sendApplication(name) {
+            const property = allMatches.find(apartment => apartment.name === name);
+            if (!property) {
+                showResultsMessage('Unable to apply to property. Please try again.', 'error');
+                return;
+            }
+
+            const alreadyApplied = appliedMatches.some(apartment => apartment.name === name);
+            if (alreadyApplied) {
+                showResultsMessage(`You have already applied to ${name}.`, 'info');
+                return;
+            }
+
+            appliedMatches.push(property);
+            persistAppliedMatches();
+            showResultsMessage(`Applied to ${name}!`, 'success');
+
+            if (showingAppliedList) {
+                renderMatches(appliedMatches, false, true);
+            }
+        }
+
+        function saveForLater(name) {
+            const property = allMatches.find(apartment => apartment.name === name);
+            if (!property) {
+                showResultsMessage('Unable to save property. Please try again.', 'error');
+                return;
+            }
+
+            const alreadySaved = savedMatches.some(apartment => apartment.name === name);
+            if (alreadySaved) {
+                showResultsMessage(`${name} is already in your saved list.`, 'info');
+                return;
+            }
+
+            savedMatches.push(property);
+            persistSavedMatches();
+            showResultsMessage(`Saved ${name} to your saved list.`, 'success');
+
+            if (showingSavedList) {
+                renderMatches(savedMatches, true);
+            }
+        }
+
+        function removeFromSaved(name) {
+            const index = savedMatches.findIndex(apartment => apartment.name === name);
+            if (index === -1) {
+                showResultsMessage('Unable to remove property. Please try again.', 'error');
+                return;
+            }
+
+            savedMatches.splice(index, 1);
+            persistSavedMatches();
+            showResultsMessage(`Removed ${name} from your saved list.`, 'success');
+            renderMatches(savedMatches, true, false);
+        }
+
+        function removeFromApplied(name) {
+            const index = appliedMatches.findIndex(apartment => apartment.name === name);
+            if (index === -1) {
+                showResultsMessage('Unable to remove application. Please try again.', 'error');
+                return;
+            }
+
+            appliedMatches.splice(index, 1);
+            persistAppliedMatches();
+            showResultsMessage(`Removed application to ${name}.`, 'success');
+            renderMatches(appliedMatches, false, true);
+        }
+
+        function checkApplication(name) {
+            showResultsMessage(`Your application for ${name} has been received. They will reach out to you with further information regarding a lease.`, 'info');
+        }
+
+        function editApplication() {
+            // Set flag that we're editing, then go to application page
+            sessionStorage.setItem('editingApplication', 'true');
+            window.location.href = 'application.html';
+        }
+
+        function switchView(view) {
+            const matchesView = document.getElementById('matchesContainer');
+            currentViewMode = view;
+
+            if (view === 'grid') {
+                matchesView.classList.add('grid-view');
+                matchesView.classList.remove('list-view');
+            } else {
+                matchesView.classList.add('list-view');
+                matchesView.classList.remove('grid-view');
+            }
+
+            if (showingSavedList || showingAppliedList) {
+                renderMatches(currentResultsMatches, false, false);
+            } else {
+                setActiveViewButton(view);
+                renderMatches(currentResultsMatches, false, false);
+            }
+        }
+    </script>
+</body>
+</html>
+
+
