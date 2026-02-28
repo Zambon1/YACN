@@ -51,7 +51,8 @@ body {
 /* Navbar */
 .navbar {
     background-color: var(--bg-white);
-    border: 3px solid black;
+    border-top: 3px solid black;
+    border-bottom: 3px solid black;
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -298,18 +299,20 @@ body {
     z-index: 0;
 }
 
+/* Top-left triangle */
 .hero::before {
     background-image:
         linear-gradient(rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0.38)),
         url('https://images.unsplash.com/photo-1560185007-5f0bb1866cab?w=1600&auto=format&fit=crop');
-    clip-path: polygon(0 0, 100% 0, 0 100%);
+    clip-path: polygon(0 0, 50% 0, 0 100%);
 }
 
+/* Bottom-right triangle */
 .hero::after {
     background-image:
         linear-gradient(rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0.38)),
         url('https://images.unsplash.com/photo-1460317442991-0ec209397118?w=1600&auto=format&fit=crop');
-    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    clip-path: polygon(50% 100%, 100% 100%, 100% 0);
 }
 
 .hero .container {
@@ -681,6 +684,7 @@ body {
     font-weight: 600;
     text-decoration: none;
     border-radius: 8px;
+    border: 3px solid black;
     transition: transform 0.3s, box-shadow 0.3s;
 }
 
