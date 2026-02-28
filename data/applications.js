@@ -12,8 +12,126 @@
 //   - landlord requires: min_monthly_income_ratio = 3.0, credit_score_min = 'fair', pets = 1
 import db from '../utils/db.js';
 
+function parseOptionalInt(value) {
+    if (value === null || value === undefined || value === '') {
+        return null;
+    }
+
+    const parsed = Number.parseInt(value, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+}
+
+function parseOptionalBoolean(value) {
+    if (value === null || value === undefined || value === '') {
+        return null;
+    }
+
+    if (typeof value === 'boolean') {
+        return value;
+    }
+
+    const normalized = String(value).trim().toLowerCase();
+    if (['true', '1', 'yes', 'y'].includes(normalized)) {
+        return true;
+    }
+    if (['false', '0', 'no', 'n'].includes(normalized)) {
+        return false;
+    }
+
+    return null;
+}
+
+function normalizeEnum(value, allowedValues) {
+    if (!value) {
+        return null;
+    }
+
+    const normalized = String(value).trim();
+    const exactMatch = allowedValues.find((allowed) => allowed === normalized);
+    if (exactMatch) {
+        return exactMatch;
+    }
+
+    const lower = normalized.toLowerCase();
+    const caseInsensitiveMatch = allowedValues.find((allowed) => allowed.toLowerCase() === lower);
+    return caseInsensitiveMatch || null;
+}
+
+function normalizeDate(value) {
+    if (!value) {
+        return null;
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+
+    return date.toISOString().slice(0, 10);
+}
+
+function mapPayloadToApplicationColumns(payload) {
+    const applicantData = payload?.applicantData || {};
+
+    return {
+        user_id: payload?.userId || payload?.user_id || null,
+        unit_id: parseOptionalInt(applicantData.unitId),
+        first_name: applicantData.firstName || null,
+        last_name: applicantData.lastName || null,
+        gender: normalizeEnum(applicantData.gender, ['male', 'female']),
+        email: payload?.email || applicantData.email || null,
+        photo_id: parseOptionalBoolean(applicantData.photoId),
+        employment_status: normalizeEnum(applicantData.employmentStatus, ['Employed', 'Self-Employed', 'Unemployed', 'Other']),
+        monthly_income: parseOptionalInt(applicantData.monthlyIncome),
+        valid_pay_stubs: parseOptionalBoolean(applicantData.validPayStubs),
+        pets: parseOptionalInt(applicantData.numberOfPets ?? applicantData.pets),
+        birthday: normalizeDate(applicantData.birthday ?? applicantData.dob),
+        driver_license: parseOptionalInt(applicantData.driverLicense),
+        employment_hist: parseOptionalBoolean(applicantData.employmentHist),
+        children: parseOptionalInt(applicantData.children),
+        guarantor_id: applicantData.guarantorId || null,
+        credit_score: normalizeEnum(applicantData.creditScore, ['poor', 'fair', 'good', 'excellent']),
+        evictions: parseOptionalBoolean(applicantData.evictions),
+        criminal_record: parseOptionalBoolean(applicantData.criminalRecord)
+    };
+}
+
+function toApplicationResponse(row) {
+    if (!row) {
+        return null;
+    }
+
+    return {
+        id: row.id,
+        userId: row.user_id,
+        email: row.email,
+        applicantData: {
+            firstName: row.first_name,
+            lastName: row.last_name,
+            gender: row.gender,
+            email: row.email,
+            photoId: row.photo_id,
+            employmentStatus: row.employment_status,
+            monthlyIncome: row.monthly_income,
+            validPayStubs: row.valid_pay_stubs,
+            pets: row.pets,
+            birthday: row.birthday,
+            driverLicense: row.driver_license,
+            employmentHist: row.employment_hist,
+            children: row.children,
+            guarantorId: row.guarantor_id,
+            creditScore: row.credit_score,
+            evictions: row.evictions,
+            criminalRecord: row.criminal_record,
+            unitId: row.unit_id
+        },
+        createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
+        topRejectionReasons: []
+    };
+}
+
 export async function createApplicationRecord(payload) {
-    const {userId, username, email, applicantData, matchCount, topRejectionReasons} = payload;
+    const applicationValues = mapPayloadToApplicationColumns(payload);
     
     try {
         // Check if application already exists for this user/email
