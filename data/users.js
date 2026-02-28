@@ -1,10 +1,26 @@
 // User database - PostgreSQL backend with UUID and enhanced features
 import db from '../utils/db.js';
 
+function normalizeUserRole(role) {
+    const normalized = String(role || 'renter').trim().toLowerCase();
+
+    if (normalized === 'landlord') {
+        return 'owner';
+    }
+
+    if (normalized === 'manager' || normalized === 'owner' || normalized === 'renter') {
+        return normalized;
+    }
+
+    return 'renter';
+}
+
 export async function createUser(firstName, lastName, username, email, phone, password, role = 'renter') {
     const client = await db.connect();
     try {
         await client.query('BEGIN');
+
+        const dbRole = normalizeUserRole(role);
 
         const settingsResult = await client.query(
             'INSERT INTO settings DEFAULT VALUES RETURNING id'
@@ -16,7 +32,7 @@ export async function createUser(firstName, lastName, username, email, phone, pa
             INSERT INTO users (first_name, last_name, username, email, phone, password_hash, settings_id, role)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *
-        `, [firstName, lastName, username, email, phone, password, settingsId, role]);
+        `, [firstName, lastName, username, email, phone, password, settingsId, dbRole]);
 
         const createdUser = userResult.rows[0];
 

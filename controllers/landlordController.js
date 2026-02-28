@@ -5,6 +5,10 @@ import * as complexes from '../data/complexes.js';
 import * as leasers from '../data/leasers.js';
 import * as requirements from '../data/requirements.js';
 
+function isLandlordRole(role) {
+    return role === 'owner' || role === 'manager' || role === 'landlord';
+}
+
 /**
  * Landlord Signup
  * POST /api/landlord/signup
@@ -74,7 +78,7 @@ export async function landlordSignup(req, res) {
             });
         }
 
-        // Create landlord user with 'landlord' role
+        // Create landlord user (normalized to an allowed DB role)
         const newUser = await createUser(firstName, lastName, username, email, phone, password, 'landlord');
         
         // Create leaser profile for the landlord
@@ -135,7 +139,7 @@ export async function getLandlordProfile(req, res) {
         }
 
         const user = await findUserById(session.user_id);
-        if (!user || user.role !== 'landlord') {
+        if (!user || !isLandlordRole(user.role)) {
             return res.status(403).json({
                 success: false,
                 error: 'This endpoint is for landlords only'
@@ -195,7 +199,7 @@ export async function createLandlordComplex(req, res) {
         }
 
         const user = await findUserById(session.user_id);
-        if (!user || user.role !== 'landlord') {
+        if (!user || !isLandlordRole(user.role)) {
             return res.status(403).json({
                 success: false,
                 error: 'Only landlords can create complexes'
