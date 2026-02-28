@@ -826,4 +826,4 @@ if (loginForm) {
             window.location.href = consumePostLoginRedirect();
         }
     });
-
+};
