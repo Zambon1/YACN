@@ -334,7 +334,120 @@
                     <div class="section-header">
                         <h2>Qualification Requirements</h2>
                     </div>
-                    <div id="requirementsList"></div>
+                    <div class="form-section">
+                        <div id="requirementsSelectProperty" style="margin-bottom: 2rem;">
+                            <label for="propertySelector" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Select Property</label>
+                            <select id="propertySelector" style="padding: 0.75rem; width: 100%; border: 1px solid var(--border-color); border-radius: 4px; font-size: 1rem;">
+                                <option value="">-- Choose a property --</option>
+                            </select>
+                        </div>
+
+                        <form id="requirementsForm" style="display: none;">
+                            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">Personal Information Requirements</h3>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                                <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer;">
+                                    <input type="checkbox" id="req_first_name" name="first_name" checked>
+                                    <span>First Name Required</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer;">
+                                    <input type="checkbox" id="req_last_name" name="last_name" checked>
+                                    <span>Last Name Required</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer;">
+                                    <input type="checkbox" id="req_email" name="email" checked>
+                                    <span>Email Required</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer;">
+                                    <input type="checkbox" id="req_birthday" name="birthday">
+                                    <span>Birthday Required</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer;">
+                                    <input type="checkbox" id="req_gender" name="gender">
+                                    <span>Gender Information Required</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer;">
+                                    <input type="checkbox" id="req_photo_id" name="photo_id">
+                                    <span>Photo ID Required</span>
+                                </label>
+                            </div>
+
+                            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">Employment & Income</h3>
+                            
+                            <div style="margin-bottom: 2rem;">
+                                <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer; margin-bottom: 1rem;">
+                                    <input type="checkbox" id="req_employment_status" name="employment_status">
+                                    <span>Employment Status Required</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer; margin-bottom: 1rem;">
+                                    <input type="checkbox" id="req_valid_pay_stubs" name="valid_pay_stubs">
+                                    <span>Valid Pay Stubs Required</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer;">
+                                    <input type="checkbox" id="req_employment_hist" name="employment_hist">
+                                    <span>Employment History Required</span>
+                                </label>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 2rem;">
+                                <label for="req_income_ratio">Minimum Monthly Income Multiplier</label>
+                                <input type="number" id="req_income_ratio" name="min_monthly_income_ratio" value="3.0" step="0.1" min="0">
+                                <small style="color: var(--text-light); display: block; margin-top: 0.5rem;">Minimum income should be this times the monthly rent (e.g., 3.0 = 3x rent)</small>
+                            </div>
+
+                            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">Background Checks</h3>
+                            
+                            <div style="margin-bottom: 2rem;">
+                                <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer; margin-bottom: 1rem;">
+                                    <input type="checkbox" id="req_evictions" name="evictions">
+                                    <span>No Evictions Required</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer; margin-bottom: 1rem;">
+                                    <input type="checkbox" id="req_criminal_record" name="criminal_record">
+                                    <span>No Criminal Record Required</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer;">
+                                    <input type="checkbox" id="req_driver_license" name="driver_license">
+                                    <span>Driver's License Required</span>
+                                </label>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 2rem;">
+                                <label for="req_credit_score">Minimum Credit Score (optional)</label>
+                                <input type="number" id="req_credit_score" name="credit_score_min" placeholder="e.g., 650">
+                            </div>
+
+                            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">Household</h3>
+                            
+                            <div style="margin-bottom: 2rem;">
+                                <div class="form-group">
+                                    <label for="req_max_pets">Maximum Pets Allowed</label>
+                                    <input type="number" id="req_max_pets" name="pets" value="0" min="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="req_max_children">Maximum Children Allowed</label>
+                                    <input type="number" id="req_max_children" name="children_allowed" value="10" min="0">
+                                </div>
+                                <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer; margin-top: 1rem;">
+                                    <input type="checkbox" id="req_guarantor_allowed" name="guarantor_allowed" checked>
+                                    <span>Guarantors Allowed</span>
+                                </label>
+                            </div>
+
+                            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                                <button type="submit" class="btn-primary">Save Requirements</button>
+                                <button type="button" class="btn-sm" style="background: var(--text-light);" onclick="clearRequirementsForm()">Clear</button>
+                            </div>
+                            <div class="error-message" id="requirementsError"></div>
+                            <div style="color: #10b981; margin-top: 1rem; padding: 1rem; border-radius: 4px; background: #ecfdf5; display: none;" id="requirementSuccess">✓ Requirements saved successfully!</div>
+                        </form>
+
+                        <div id="noPropertiesMessage" class="empty-state">
+                            <div class="empty-state-icon">🏢</div>
+                            <p>You don't have any properties yet.</p>
+                            <p style="margin-top: 1rem;"><a href="#" onclick="showSection('add-complex'); return false;" style="color: var(--primary-color); text-decoration: underline;">Create your first property</a> to set requirements.</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Applications Section -->

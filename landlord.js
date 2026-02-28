@@ -165,8 +165,189 @@ async function loadComplexes() {
 }
 
 async function loadRequirements() {
-    const container = document.getElementById('requirementsList');
-    container.innerHTML = '<p>Requirements management coming soon...</p>';
+    try {
+        const token = localStorage.getItem('session_token');
+        const user = getCurrentUser();
+        
+        // Fetch user profile to get complexes
+        const response = await fetch('http://localhost:5000/api/landlord/profile', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch profile');
+        }
+
+        const data = await response.json();
+        const complexes = data.complexes || [];
+        const propertySelector = document.getElementById('propertySelector');
+        const requirementsSelectProperty = document.getElementById('requirementsSelectProperty');
+        const noPropertiesMessage = document.getElementById('noPropertiesMessage');
+        const requirementsForm = document.getElementById('requirementsForm');
+
+        if (complexes.length === 0) {
+            requirementsSelectProperty.style.display = 'none';
+            requirementsForm.style.display = 'none';
+            noPropertiesMessage.style.display = 'block';
+            return;
+        }
+
+        requirementsSelectProperty.style.display = 'block';
+        noPropertiesMessage.style.display = 'none';
+
+        // Clear existing options
+        propertySelector.innerHTML = '<option value="">-- Choose a property --</option>';
+
+        // Populate property selector
+        complexes.forEach(complex => {
+            const option = document.createElement('option');
+            option.value = complex.id;
+            option.textContent = `${complex.property_name} - ${complex.city}, ${complex.us_state}`;
+            propertySelector.appendChild(option);
+        });
+
+        // Handle property selection
+        propertySelector.addEventListener('change', async function() {
+            if (!this.value) {
+                requirementsForm.style.display = 'none';
+                return;
+            }
+
+            await loadComplexRequirements(this.value, token);
+        });
+
+    } catch (error) {
+        console.error('Error loading requirements:', error);
+        document.getElementById('requirementSuccess').style.display = 'none';
+        document.getElementById('requirementsError').textContent = 'Error loading requirements';
+        document.getElementById('requirementsError').style.display = 'block';
+    }
+}
+
+async function loadComplexRequirements(complexId, token) {
+    try {
+        const response = await fetch(`http://localhost:5000/api/landlord/complex/${complexId}/requirements`, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch requirements');
+        }
+
+        const data = await response.json();
+        const requirements = data.requirements;
+
+        // Store current complex ID for form submission
+        document.getElementById('requirementsForm').dataset.complexId = complexId;
+
+        // Populate form with requirements
+        document.getElementById('req_first_name').checked = requirements.first_name;
+        document.getElementById('req_last_name').checked = requirements.last_name;
+        document.getElementById('req_email').checked = requirements.email;
+        document.getElementById('req_birthday').checked = requirements.birthday || false;
+        document.getElementById('req_gender').checked = requirements.gender || false;
+        document.getElementById('req_photo_id').checked = requirements.photo_id || false;
+        document.getElementById('req_employment_status').checked = requirements.employment_status || false;
+        document.getElementById('req_valid_pay_stubs').checked = requirements.valid_pay_stubs || false;
+        document.getElementById('req_employment_hist').checked = requirements.employment_hist || false;
+        document.getElementById('req_income_ratio').value = requirements.min_monthly_income_ratio || 3.0;
+        document.getElementById('req_evictions').checked = requirements.evictions || false;
+        document.getElementById('req_criminal_record').checked = requirements.criminal_record || false;
+        document.getElementById('req_driver_license').checked = requirements.driver_license || false;
+        document.getElementById('req_credit_score').value = requirements.credit_score_min || '';
+        document.getElementById('req_max_pets').value = requirements.pets || 0;
+        document.getElementById('req_max_children').value = requirements.children_allowed || 10;
+        document.getElementById('req_guarantor_allowed').checked = requirements.guarantor_allowed !== false;
+
+        // Show form
+        document.getElementById('requirementsForm').style.display = 'block';
+        document.getElementById('requirementsError').style.display = 'none';
+        document.getElementById('requirementSuccess').style.display = 'none';
+
+    } catch (error) {
+        console.error('Error loading complex requirements:', error);
+        document.getElementById('requirementsError').textContent = 'Error loading requirements for this property';
+        document.getElementById('requirementsError').style.display = 'block';
+    }
+}
+
+function clearRequirementsForm() {
+    document.getElementById('requirementsForm').reset();
+    document.getElementById('propertySelector').value = '';
+    document.getElementById('requirementsForm').style.display = 'none';
+    document.getElementById('requirementsError').style.display = 'none';
+    document.getElementById('requirementSuccess').style.display = 'none';
+}
+
+async function saveRequirements() {
+    try {
+        const token = localStorage.getItem('session_token');
+        const complexId = document.getElementById('requirementsForm').dataset.complexId;
+        const errorDiv = document.getElementById('requirementsError');
+        const successDiv = document.getElementById('requirementSuccess');
+
+        if (!complexId) {
+            errorDiv.textContent = 'Please select a property';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        // Gather form data
+        const requirements = {
+            first_name: document.getElementById('req_first_name').checked,
+            last_name: document.getElementById('req_last_name').checked,
+            email: document.getElementById('req_email').checked,
+            birthday: document.getElementById('req_birthday').checked,
+            gender: document.getElementById('req_gender').checked,
+            photo_id: document.getElementById('req_photo_id').checked,
+            employment_status: document.getElementById('req_employment_status').checked,
+            valid_pay_stubs: document.getElementById('req_valid_pay_stubs').checked,
+            employment_hist: document.getElementById('req_employment_hist').checked,
+            min_monthly_income_ratio: parseFloat(document.getElementById('req_income_ratio').value) || 3.0,
+            evictions: document.getElementById('req_evictions').checked,
+            criminal_record: document.getElementById('req_criminal_record').checked,
+            driver_license: document.getElementById('req_driver_license').checked,
+            credit_score_min: document.getElementById('req_credit_score').value ? parseInt(document.getElementById('req_credit_score').value) : null,
+            pets: parseInt(document.getElementById('req_max_pets').value) || 0,
+            children_allowed: parseInt(document.getElementById('req_max_children').value) || 10,
+            guarantor_allowed: document.getElementById('req_guarantor_allowed').checked
+        };
+
+        const response = await fetch(`http://localhost:5000/api/landlord/complex/${complexId}/requirements`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(requirements)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to save requirements');
+        }
+
+        errorDiv.style.display = 'none';
+        successDiv.textContent = '✓ Requirements saved successfully!';
+        successDiv.style.display = 'block';
+
+        // Hide success message after 3 seconds
+        setTimeout(() => {
+            successDiv.style.display = 'none';
+        }, 3000);
+
+    } catch (error) {
+        console.error('Error saving requirements:', error);
+        errorDiv.textContent = error.message || 'Error saving requirements';
+        errorDiv.style.display = 'block';
+    }
 }
 
 async function createComplex(formData) {
@@ -429,6 +610,15 @@ document.addEventListener('DOMContentLoaded', function() {
             addComplexForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 createComplex(new FormData(this));
+            });
+        }
+
+        // Handle requirements form
+        const requirementsForm = document.getElementById('requirementsForm');
+        if (requirementsForm) {
+            requirementsForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveRequirements();
             });
         }
     }

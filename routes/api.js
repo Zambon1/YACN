@@ -17,7 +17,9 @@ import {
     getLandlordProfile,
     createLandlordComplex,
     updateLandlordComplex,
-    deleteLandlordComplex
+    deleteLandlordComplex,
+    getComplexRequirements,
+    updateComplexRequirements
 } from '../controllers/landlordController.js';
 
 const router = express.Router();
@@ -66,5 +68,9 @@ router.get('/landlord/profile', getLandlordProfile);
 router.post('/landlord/complex', createLandlordComplex);
 router.put('/landlord/complex/:complexId', updateLandlordComplex);
 router.delete('/landlord/complex/:complexId', deleteLandlordComplex);
+
+// Landlord requirements routes
+router.get('/landlord/complex/:complexId/requirements', getComplexRequirements);
+router.put('/landlord/complex/:complexId/requirements', updateComplexRequirements);
 
 export default router;

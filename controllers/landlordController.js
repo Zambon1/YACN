@@ -3,6 +3,7 @@ import { createUser, findUserByEmail, findUserByUsername, getUserPublic, findUse
 import { createSession } from '../data/sessions.js';
 import * as complexes from '../data/complexes.js';
 import * as leasers from '../data/leasers.js';
+import * as requirements from '../data/requirements.js';
 
 /**
  * Landlord Signup
@@ -359,6 +360,149 @@ export async function deleteLandlordComplex(req, res) {
         res.status(500).json({
             success: false,
             error: 'Error deleting complex'
+        });
+    }
+}
+
+/**
+ * Get requirements for a complex
+ * GET /api/landlord/complex/:complexId/requirements
+ * Requires auth token
+ */
+export async function getComplexRequirements(req, res) {
+    try {
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authentication required'
+            });
+        }
+
+        const { complexId } = req.params;
+
+        // Verify user owns this complex
+        const { getSession } = await import('../data/sessions.js');
+        const session = await getSession(token);
+        if (!session) {
+            return res.status(401).json({
+                success: false,
+                error: 'Invalid session'
+            });
+        }
+
+        const user = await findUserById(session.user_id);
+        const leaser = await leasers.getLeaserByUserId(user.id);
+        const complex = await complexes.getComplexById(complexId);
+
+        if (!complex || complex.leaser_id !== leaser.id) {
+            return res.status(403).json({
+                success: false,
+                error: 'You do not have permission to access this complex'
+            });
+        }
+
+        // Get requirements
+        let reqs = await requirements.getRequirementsForComplex(complexId);
+        
+        // If no requirements exist, return defaults
+        if (!reqs) {
+            reqs = {
+                complex_id: complexId,
+                first_name: true,
+                last_name: true,
+                gender: false,
+                email: true,
+                photo_id: false,
+                employment_status: false,
+                min_monthly_income_ratio: 3.0,
+                valid_pay_stubs: false,
+                pets: 0,
+                birthday: false,
+                driver_license: false,
+                employment_hist: false,
+                children_allowed: 10,
+                guarantor_allowed: true,
+                credit_score_min: null,
+                evictions: false,
+                criminal_record: false
+            };
+        }
+
+        res.json({
+            success: true,
+            requirements: reqs
+        });
+    } catch (error) {
+        console.error('Get requirements error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error fetching requirements'
+        });
+    }
+}
+
+/**
+ * Update requirements for a complex
+ * PUT /api/landlord/complex/:complexId/requirements
+ * Requires auth token
+ */
+export async function updateComplexRequirements(req, res) {
+    try {
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authentication required'
+            });
+        }
+
+        const { complexId } = req.params;
+
+        // Verify user owns this complex
+        const { getSession } = await import('../data/sessions.js');
+        const session = await getSession(token);
+        if (!session) {
+            return res.status(401).json({
+                success: false,
+                error: 'Invalid session'
+            });
+        }
+
+        const user = await findUserById(session.user_id);
+        const leaser = await leasers.getLeaserByUserId(user.id);
+        const complex = await complexes.getComplexById(complexId);
+
+        if (!complex || complex.leaser_id !== leaser.id) {
+            return res.status(403).json({
+                success: false,
+                error: 'You do not have permission to edit this complex'
+            });
+        }
+
+        // Check if requirements exist, if not create them
+        let existingReqs = await requirements.getRequirementsForComplex(complexId);
+        
+        let updatedReqs;
+        if (!existingReqs) {
+            updatedReqs = await requirements.createApplicationRequirements({
+                complex_id: complexId,
+                ...req.body
+            });
+        } else {
+            updatedReqs = await requirements.updateApplicationRequirements(complexId, req.body);
+        }
+
+        res.json({
+            success: true,
+            message: 'Requirements updated successfully',
+            requirements: updatedReqs
+        });
+    } catch (error) {
+        console.error('Update requirements error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error updating requirements'
         });
     }
 }
