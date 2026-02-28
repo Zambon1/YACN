@@ -32,6 +32,71 @@ function logout() {
     window.location.href = 'index.html';
 }
 
+// Check if user has submitted an application
+function hasSubmittedApplication() {
+    const user = getCurrentUser();
+    if (!user) return false;
+    
+    const applicationKey = `application_${user.id || user.email}`;
+    return localStorage.getItem(applicationKey) !== null;
+}
+
+function getSettingsStorageKey() {
+    const user = getCurrentUser();
+    if (!user) return null;
+    return `settings_${user.id || user.email}`;
+}
+
+function getUserSettings() {
+    const key = getSettingsStorageKey();
+    if (!key) return null;
+
+    const raw = localStorage.getItem(key);
+    if (!raw) {
+        return {
+            emailUpdates: true,
+            applicationReminders: true
+        };
+    }
+
+    try {
+        return JSON.parse(raw);
+    } catch {
+        return {
+            emailUpdates: true,
+            applicationReminders: true
+        };
+    }
+}
+
+function saveUserSettings(settings) {
+    const key = getSettingsStorageKey();
+    if (!key) return;
+    localStorage.setItem(key, JSON.stringify(settings));
+}
+
+function setPostLoginRedirect(path) {
+    localStorage.setItem('post_login_redirect', path);
+}
+
+function consumePostLoginRedirect() {
+    const path = localStorage.getItem('post_login_redirect');
+    localStorage.removeItem('post_login_redirect');
+    return path || 'index.html';
+}
+
+// Check application status and redirect
+function checkApplicationStatus() {
+    if (hasSubmittedApplication()) {
+        // User has submitted an application, show results page
+        window.location.href = 'results.html';
+    } else {
+        // No application submitted, redirect to application page with message flag
+        localStorage.setItem('show_no_application_message', 'true');
+        window.location.href = 'application.html';
+    }
+}
+
 // Update user profile display on page load
 function updateUserDisplay() {
     const userProfile = document.querySelector('.user-profile');
@@ -46,12 +111,29 @@ function updateUserDisplay() {
                 <span class="dropdown-arrow">▼</span>
             </div>
             <div class="user-dropdown">
-                <a href="application.html" class="dropdown-item">Application Status</a>
+                <a href="#" class="dropdown-item" id="applicationStatusBtn">Application Status</a>
                 <a href="#" class="dropdown-item" id="settingsBtn">Settings</a>
                 <hr class="dropdown-divider">
                 <a href="#" class="dropdown-item logout-item" id="logoutDropdown">Logout</a>
             </div>
         `;
+        
+        // Add application status handler
+        const applicationStatusBtn = document.getElementById('applicationStatusBtn');
+        if (applicationStatusBtn) {
+            applicationStatusBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                checkApplicationStatus();
+            });
+        }
+
+        const settingsBtn = document.getElementById('settingsBtn');
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'settings.html';
+            });
+        }
         
         // Add dropdown logout handler
         const logoutDropdown = document.getElementById('logoutDropdown');
@@ -72,8 +154,79 @@ document.addEventListener('DOMContentLoaded', updateUserDisplay);
 // Check authentication for application page
 if (window.location.pathname.endsWith('application.html')) {
     if (!isLoggedIn()) {
+        setPostLoginRedirect('application.html');
         window.location.href = 'login.html';
     }
+    
+    // Check if we should show "no application" message
+    if (localStorage.getItem('show_no_application_message') === 'true') {
+        localStorage.removeItem('show_no_application_message');
+        
+        // Wait for DOM to load, then show message
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('applicationForm');
+            if (form) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'info-message';
+                messageDiv.innerHTML = '<strong>No Application Found</strong><br>You haven\'t submitted an application yet. Fill out the form below to get started!';
+                form.parentElement.insertBefore(messageDiv, form);
+                
+                // Scroll to message
+                messageDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    }
+}
+
+if (window.location.pathname.endsWith('settings.html')) {
+    if (!isLoggedIn()) {
+        window.location.href = 'login.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const user = getCurrentUser();
+        if (!user) return;
+
+        const usernameEl = document.getElementById('settingsUsername');
+        const emailEl = document.getElementById('settingsEmail');
+        if (usernameEl) usernameEl.textContent = user.username || '-';
+        if (emailEl) emailEl.textContent = user.email || '-';
+
+        const settings = getUserSettings();
+        const emailUpdates = document.getElementById('emailUpdates');
+        const applicationReminders = document.getElementById('applicationReminders');
+
+        if (emailUpdates) emailUpdates.checked = !!settings.emailUpdates;
+        if (applicationReminders) applicationReminders.checked = !!settings.applicationReminders;
+
+        const settingsForm = document.getElementById('settingsForm');
+        const settingsMessage = document.getElementById('settingsMessage');
+
+        if (settingsForm) {
+            settingsForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const updatedSettings = {
+                    emailUpdates: !!(emailUpdates && emailUpdates.checked),
+                    applicationReminders: !!(applicationReminders && applicationReminders.checked)
+                };
+
+                saveUserSettings(updatedSettings);
+
+                if (settingsMessage) {
+                    settingsMessage.style.display = 'block';
+                    settingsMessage.innerHTML = '<strong>Saved</strong>Your settings were updated successfully.';
+                }
+            });
+        }
+
+        const logoutFromSettings = document.getElementById('logoutFromSettings');
+        if (logoutFromSettings) {
+            logoutFromSettings.addEventListener('click', function() {
+                logout();
+            });
+        }
+    });
 }
 
 // Smooth scrolling for navigation links
@@ -95,6 +248,7 @@ document.querySelectorAll('a[href="application.html"]').forEach(link => {
     link.addEventListener('click', function(e) {
         if (!isLoggedIn()) {
             e.preventDefault();
+            setPostLoginRedirect('application.html');
             window.location.href = 'login.html';
         }
     });
@@ -107,6 +261,7 @@ if (silhouette) {
         if (isLoggedIn()) {
             window.location.href = 'application.html';
         } else {
+            setPostLoginRedirect('application.html');
             window.location.href = 'login.html';
         }
     });
@@ -200,6 +355,16 @@ if (applicationForm) {
             const result = await response.json();
             
             if (result.success) {
+                // Mark that user has submitted an application
+                const user = getCurrentUser();
+                if (user) {
+                    const applicationKey = `application_${user.id || user.email}`;
+                    localStorage.setItem(applicationKey, JSON.stringify({
+                        submittedAt: new Date().toISOString(),
+                        data: data
+                    }));
+                }
+                
                 // Store results in sessionStorage
                 sessionStorage.setItem('matchResults', JSON.stringify(result));
                 
@@ -284,6 +449,12 @@ if (showSignupLink) {
         e.preventDefault();
         loginCard.classList.add('hidden');
         signupCard.classList.remove('hidden');
+        // Clear error messages
+        const loginError = document.getElementById('loginError');
+        if (loginError) {
+            loginError.textContent = '';
+            loginError.style.display = 'none';
+        }
     });
 }
 
@@ -292,6 +463,12 @@ if (showLoginLink) {
         e.preventDefault();
         signupCard.classList.add('hidden');
         loginCard.classList.remove('hidden');
+        // Clear error messages
+        const signupError = document.getElementById('signupError');
+        if (signupError) {
+            signupError.textContent = '';
+            signupError.style.display = 'none';
+        }
     });
 }
 
@@ -324,13 +501,18 @@ if (signupForm) {
     signupForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        const errorDiv = document.getElementById('signupError');
+        errorDiv.textContent = '';
+        errorDiv.style.display = 'none';
+        
         const email = document.getElementById('signupEmail').value;
         const username = document.getElementById('signupUsername').value;
         const password = document.getElementById('signupPassword').value;
         const confirmPassword = document.getElementById('signupConfirmPassword').value;
         
         if (password !== confirmPassword) {
-            alert('Passwords do not match');
+            errorDiv.textContent = 'Passwords do not match';
+            errorDiv.style.display = 'block';
             return;
         }
         
@@ -355,14 +537,16 @@ if (signupForm) {
                 // Store user and session token
                 setCurrentUser(result.user, result.token);
                 
-                // Redirect to application page
-                window.location.href = 'application.html';
+                // Redirect to intended page or default home
+                window.location.href = consumePostLoginRedirect();
             } else {
-                alert('Signup failed: ' + result.error);
+                errorDiv.textContent = result.error;
+                errorDiv.style.display = 'block';
             }
         } catch (error) {
             console.error('Signup error:', error);
-            alert('Error signing up. Make sure the backend server is running.');
+            errorDiv.textContent = 'Error signing up. Make sure the backend server is running.';
+            errorDiv.style.display = 'block';
         }
     });
 }
@@ -372,7 +556,11 @@ if (loginForm) {
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const email = document.getElementById('loginEmail').value;
+        const errorDiv = document.getElementById('loginError');
+        errorDiv.textContent = '';
+        errorDiv.style.display = 'none';
+        
+        const emailOrUsername = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
         
         try {
@@ -383,7 +571,7 @@ if (loginForm) {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    email: email,
+                    emailOrUsername: emailOrUsername,
                     password: password
                 })
             });
@@ -394,14 +582,16 @@ if (loginForm) {
                 // Store user and session token
                 setCurrentUser(result.user, result.token);
                 
-                // Redirect to application page
-                window.location.href = 'application.html';
+                // Redirect to intended page or default home
+                window.location.href = consumePostLoginRedirect();
             } else {
-                alert('Login failed: ' + result.error);
+                errorDiv.textContent = result.error;
+                errorDiv.style.display = 'block';
             }
         } catch (error) {
             console.error('Login error:', error);
-            alert('Error logging in. Make sure the backend server is running.');
+            errorDiv.textContent = 'Error logging in. Make sure the backend server is running.';
+            errorDiv.style.display = 'block';
         }
     });
 }

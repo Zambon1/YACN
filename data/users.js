@@ -1,16 +1,41 @@
 // User database - stores all registered users
-// In production, this would be a real database like MongoDB or PostgreSQL
+// Persisted to users.json file
 
-export const users = [
-    // Example user for testing:
-    // {
-    //     id: '1',
-    //     email: 'test@example.com',
-    //     username: 'testuser',
-    //     password: 'password123',
-    //     createdAt: new Date().toISOString()
-    // }
-];
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const usersFilePath = path.join(__dirname, 'users.json');
+
+// Load users from file or initialize empty array
+function loadUsers() {
+    try {
+        if (fs.existsSync(usersFilePath)) {
+            const data = fs.readFileSync(usersFilePath, 'utf-8');
+            const loadedUsers = JSON.parse(data);
+            console.log(`✓ Loaded ${loadedUsers.length} user(s) from database`);
+            return loadedUsers;
+        }
+    } catch (error) {
+        console.error('Error loading users:', error);
+    }
+    console.log('✓ Initialized new user database');
+    return [];
+}
+
+// Save users to file
+function saveUsers() {
+    try {
+        fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2), 'utf-8');
+        console.log(`✓ User database saved (${users.length} total users)`);
+    } catch (error) {
+        console.error('Error saving users:', error);
+    }
+}
+
+export const users = loadUsers();
 
 // Function to find user by email
 export function findUserByEmail(email) {
@@ -38,6 +63,7 @@ export function createUser(email, username, password) {
         createdAt: new Date().toISOString()
     };
     users.push(newUser);
+    saveUsers(); // Persist to file
     return newUser;
 }
 

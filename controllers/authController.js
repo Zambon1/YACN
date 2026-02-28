@@ -65,22 +65,26 @@ export function signup(req, res) {
 
 // User login
 export function login(req, res) {
-    const { email, password } = req.body;
+    const { emailOrUsername, password } = req.body;
 
     // Validation
-    if (!email || !password) {
+    if (!emailOrUsername || !password) {
         return res.status(400).json({
             success: false,
-            error: 'Email and password are required'
+            error: 'Email/Username and password are required'
         });
     }
 
-    // Find user
-    const user = findUserByEmail(email);
+    // Find user by email or username
+    let user = findUserByEmail(emailOrUsername);
+    if (!user) {
+        user = findUserByUsername(emailOrUsername);
+    }
+    
     if (!user) {
         return res.status(401).json({
             success: false,
-            error: 'Invalid email or password'
+            error: 'Invalid email/username or password'
         });
     }
 
@@ -88,7 +92,7 @@ export function login(req, res) {
     if (user.password !== password) {
         return res.status(401).json({
             success: false,
-            error: 'Invalid email or password'
+            error: 'Invalid email/username or password'
         });
     }
 

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - RentMatch</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="top-banner">
+        <div class="container">
+            <h1>🏠 RentMatch</h1>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="application.html">Application</a></li>
+                <li><a href="results.html">Results</a></li>
+            </ul>
+            <div class="user-profile"></div>
+        </div>
+    </nav>
+
+    <section class="settings-section">
+        <div class="container">
+            <h2>Account Settings</h2>
+            <p class="section-subtitle">Manage your profile and preferences</p>
+
+            <div class="settings-card">
+                <h3>Account</h3>
+                <div class="settings-row"><span>Username</span><strong id="settingsUsername">-</strong></div>
+                <div class="settings-row"><span>Email</span><strong id="settingsEmail">-</strong></div>
+            </div>
+
+            <form id="settingsForm" class="settings-card settings-form">
+                <h3>Preferences</h3>
+
+                <label class="settings-toggle">
+                    <input type="checkbox" id="emailUpdates">
+                    <span>Receive email updates about matching apartments</span>
+                </label>
+
+                <label class="settings-toggle">
+                    <input type="checkbox" id="applicationReminders">
+                    <span>Receive reminders for incomplete applications</span>
+                </label>
+
+                <div id="settingsMessage" class="info-message" style="display:none;"></div>
+                <button type="submit" class="submit-button">Save Settings</button>
+            </form>
+
+            <div class="settings-card">
+                <h3>Session</h3>
+                <button type="button" id="logoutFromSettings" class="submit-button secondary-button">Log Out</button>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 RentMatch. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
