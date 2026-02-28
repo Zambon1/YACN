@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rental Application - RentMatch</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="top-banner">
+        <div class="container">
+            <h1>🏠 RentMatch</h1>
+        </div>
+    </div>
+    <nav class="navbar">
+        <div class="container">
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#apply">Application</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section id="apply" class="application-section">
+        <div class="container">
+            <h2>Rental Application</h2>
+            <p class="section-subtitle">Complete the form below to find apartments that match your qualifications</p>
+            
+            <form id="applicationForm" class="application-form">
+                <div class="form-section">
+                    <h3>Personal Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="firstName">First Name *</label>
+                            <input type="text" id="firstName" name="firstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name *</label>
+                            <input type="text" id="lastName" name="lastName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address *</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number *</label>
+                            <input type="tel" id="phone" name="phone" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" placeholder="555-555-5555" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="dob">Date of Birth *</label>
+                            <input type="date" id="dob" name="dob" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="ssn">Social Security Number (Last 4 Digits) *</label>
+                            <input type="text" id="ssn" name="ssn" pattern="[0-9]{4}" placeholder="1234" maxlength="4" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Current Address</h3>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="currentAddress">Street Address *</label>
+                            <input type="text" id="currentAddress" name="currentAddress" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="currentCity">City *</label>
+                            <input type="text" id="currentCity" name="currentCity" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="currentState">State *</label>
+                            <input type="text" id="currentState" name="currentState" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="currentZip">Zip Code *</label>
+                            <input type="text" id="currentZip" name="currentZip" pattern="[0-9]{5}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="yearsAtAddress">Years at Address *</label>
+                            <input type="number" id="yearsAtAddress" name="yearsAtAddress" min="0" step="0.1" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Desired Location & Preferences</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="desiredCity">Preferred City *</label>
+                            <input type="text" id="desiredCity" name="desiredCity" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="desiredState">State *</label>
+                            <input type="text" id="desiredState" name="desiredState" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="bedrooms">Bedrooms *</label>
+                            <select id="bedrooms" name="bedrooms" required>
+                                <option value="">Select...</option>
+                                <option value="studio">Studio</option>
+                                <option value="1">1 Bedroom</option>
+                                <option value="2">2 Bedrooms</option>
+                                <option value="3">3 Bedrooms</option>
+                                <option value="4">4+ Bedrooms</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="bathrooms">Bathrooms *</label>
+                            <select id="bathrooms" name="bathrooms" required>
+                                <option value="">Select...</option>
+                                <option value="1">1 Bathroom</option>
+                                <option value="1.5">1.5 Bathrooms</option>
+                                <option value="2">2 Bathrooms</option>
+                                <option value="2.5">2.5+ Bathrooms</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="maxRent">Maximum Monthly Rent *</label>
+                            <input type="number" id="maxRent" name="maxRent" min="0" step="50" placeholder="$1500" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="moveInDate">Desired Move-In Date *</label>
+                            <input type="date" id="moveInDate" name="moveInDate" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Employment Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="employmentStatus">Employment Status *</label>
+                            <select id="employmentStatus" name="employmentStatus" required>
+                                <option value="">Select...</option>
+                                <option value="employed">Employed</option>
+                                <option value="self-employed">Self-Employed</option>
+                                <option value="unemployed">Unemployed</option>
+                                <option value="student">Student</option>
+                                <option value="retired">Retired</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="employer">Current Employer</label>
+                            <input type="text" id="employer" name="employer">
+                        </div>
+                        <div class="form-group">
+                            <label for="jobTitle">Job Title</label>
+                            <input type="text" id="jobTitle" name="jobTitle">
+                        </div>
+                        <div class="form-group">
+                            <label for="yearsEmployed">Years Employed</label>
+                            <input type="number" id="yearsEmployed" name="yearsEmployed" min="0" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="monthlyIncome">Monthly Gross Income *</label>
+                            <input type="number" id="monthlyIncome" name="monthlyIncome" min="0" step="100" placeholder="$4000" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="additionalIncome">Additional Monthly Income</label>
+                            <input type="number" id="additionalIncome" name="additionalIncome" min="0" step="100" placeholder="$0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Financial Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="creditScore">Estimated Credit Score *</label>
+                            <select id="creditScore" name="creditScore" required>
+                                <option value="">Select...</option>
+                                <option value="excellent">Excellent (750+)</option>
+                                <option value="good">Good (700-749)</option>
+                                <option value="fair">Fair (650-699)</option>
+                                <option value="poor">Poor (600-649)</option>
+                                <option value="very-poor">Very Poor (Below 600)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="bankruptcy">Any Bankruptcies? *</label>
+                            <select id="bankruptcy" name="bankruptcy" required>
+                                <option value="">Select...</option>
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="evictions">Any Evictions? *</label>
+                            <select id="evictions" name="evictions" required>
+                                <option value="">Select...</option>
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="criminalRecord">Criminal Record? *</label>
+                            <select id="criminalRecord" name="criminalRecord" required>
+                                <option value="">Select...</option>
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Additional Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="pets">Do you have pets? *</label>
+                            <select id="pets" name="pets" required>
+                                <option value="">Select...</option>
+                                <option value="no">No</option>
+                                <option value="dog">Yes - Dog(s)</option>
+                                <option value="cat">Yes - Cat(s)</option>
+                                <option value="both">Yes - Dog(s) and Cat(s)</option>
+                                <option value="other">Yes - Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="numberOfPets">Number of Pets</label>
+                            <input type="number" id="numberOfPets" name="numberOfPets" min="0" max="10" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="smoking">Smoking Status *</label>
+                            <select id="smoking" name="smoking" required>
+                                <option value="">Select...</option>
+                                <option value="no">Non-Smoker</option>
+                                <option value="yes">Smoker</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="occupants">Number of Occupants *</label>
+                            <input type="number" id="occupants" name="occupants" min="1" max="10" value="1" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Emergency Contact</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="emergencyName">Full Name *</label>
+                            <input type="text" id="emergencyName" name="emergencyName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="emergencyRelation">Relationship *</label>
+                            <input type="text" id="emergencyRelation" name="emergencyRelation" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="emergencyPhone">Phone Number *</label>
+                            <input type="tel" id="emergencyPhone" name="emergencyPhone" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" placeholder="555-555-5555" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>References</h3>
+                    <div class="reference-group">
+                        <h4>Reference 1</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="ref1Name">Full Name</label>
+                                <input type="text" id="ref1Name" name="ref1Name">
+                            </div>
+                            <div class="form-group">
+                                <label for="ref1Relation">Relationship</label>
+                                <input type="text" id="ref1Relation" name="ref1Relation">
+                            </div>
+                            <div class="form-group">
+                                <label for="ref1Phone">Phone Number</label>
+                                <input type="tel" id="ref1Phone" name="ref1Phone" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" placeholder="555-555-5555">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reference-group">
+                        <h4>Reference 2</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="ref2Name">Full Name</label>
+                                <input type="text" id="ref2Name" name="ref2Name">
+                            </div>
+                            <div class="form-group">
+                                <label for="ref2Relation">Relationship</label>
+                                <input type="text" id="ref2Relation" name="ref2Relation">
+                            </div>
+                            <div class="form-group">
+                                <label for="ref2Phone">Phone Number</label>
+                                <input type="tel" id="ref2Phone" name="ref2Phone" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" placeholder="555-555-5555">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="submit-button">Find My Matches</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 RentMatch. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Matches - RentMatch</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .results-hero {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .results-summary {
+            background: white;
+            padding: 30px;
+            margin: -30px auto 40px;
+            max-width: 800px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-summary h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .results-summary p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .matches-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .no-matches {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .no-matches h2 {
+            color: var(--text-dark);
+            margin-bottom: 20px;
+        }
+
+        .no-matches p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        .apartment-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .apartment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .apartment-card-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 0;
+        }
+
+        .apartment-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .apartment-details {
+            padding: 30px;
+        }
+
+        .apartment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .apartment-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+
+        .match-badge {
+            background: var(--secondary-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .match-badge.excellent {
+            background: #10b981;
+        }
+
+        .match-badge.great {
+            background: #3b82f6;
+        }
+
+        .match-badge.good {
+            background: #f59e0b;
+        }
+
+        .apartment-address {
+            color: var(--text-light);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .apartment-specs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .spec-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .spec-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 3px;
+        }
+
+        .spec-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .spec-value.price {
+            color: var(--primary-color);
+            font-size: 1.3rem;
+        }
+
+        .amenities {
+            margin-bottom: 20px;
+        }
+
+        .amenities h4 {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .amenity-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .amenity-tag {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .apartment-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-button {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .primary-action {
+            background: var(--primary-color);
+            color: white;
+            flex: 1;
+        }
+
+        .primary-action:hover {
+            background: var(--primary-dark);
+        }
+
+        .secondary-action {
+            background: white;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            flex: 1;
+        }
+
+        .secondary-action:hover {
+            background: var(--bg-light);
+        }
+
+        .back-button {
+            display: inline-block;
+            margin: 20px;
+            padding: 12px 24px;
+            background: white;
+            color: var(--primary-color);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            border: 2px solid var(--primary-color);
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .apartment-card-content {
+                grid-template-columns: 1fr;
+            }
+
+            .apartment-image {
+                height: 200px;
+            }
+
+            .apartment-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <h1>🏠 RentMatch</h1>
+            </div>
+        </div>
+    </nav>
+
+    <section class="results-hero">
+        <div class="container">
+            <h1>Your Apartment Matches</h1>
+        </div>
+    </section>
+
+    <div class="results-summary" id="resultsSummary">
+        <!-- Populated by JavaScript -->
+    </div>
+
+    <div class="matches-container" id="matchesContainer">
+        <!-- Populated by JavaScript -->
+    </div>
+
+    <div style="text-align: center; padding-bottom: 40px;">
+        <a href="index.html" class="back-button">← Start New Search</a>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 RentMatch. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Load results from sessionStorage
+        const resultsData = JSON.parse(sessionStorage.getItem('matchResults'));
+
+        if (!resultsData) {
+            window.location.href = 'index.html';
+        } else {
+            displayResults(resultsData);
+        }
+
+        function displayResults(data) {
+            const summaryDiv = document.getElementById('resultsSummary');
+            const matchesDiv = document.getElementById('matchesContainer');
+
+            // Display summary
+            summaryDiv.innerHTML = `
+                <h2>Hello, ${data.applicant.name}!</h2>
+                <p>We found <strong>${data.count}</strong> apartment${data.count !== 1 ? 's' : ''} that match your qualifications.</p>
+            `;
+
+            // Display matches
+            if (data.count === 0) {
+                matchesDiv.innerHTML = `
+                    <div class="no-matches">
+                        <h2>No Matches Found</h2>
+                        <p>Unfortunately, we couldn't find any apartments that match all your criteria.</p>
+                        <p>Try adjusting your search preferences or budget.</p>
+                        <a href="index.html" class="cta-button">Modify Search</a>
+                    </div>
+                `;
+            } else {
+                matchesDiv.innerHTML = data.matches.map(apartment => {
+                    const matchLevel = apartment.match_score >= 110 ? 'excellent' : 
+                                      apartment.match_score >= 105 ? 'great' : 'good';
+                    const matchText = apartment.match_score >= 110 ? 'Excellent Match' : 
+                                     apartment.match_score >= 105 ? 'Great Match' : 'Good Match';
+
+                    return `
+                        <div class="apartment-card">
+                            <div class="apartment-card-content">
+                                <img src="${apartment.image}" alt="${apartment.name}" class="apartment-image">
+                                <div class="apartment-details">
+                                    <div class="apartment-header">
+                                        <div>
+                                            <h3 class="apartment-name">${apartment.name}</h3>
+                                            <p class="apartment-address">📍 ${apartment.address}, ${apartment.city}, ${apartment.state}</p>
+                                        </div>
+                                        <span class="match-badge ${matchLevel}">${matchText}</span>
+                                    </div>
+
+                                    <div class="apartment-specs">
+                                        <div class="spec-item">
+                                            <span class="spec-label">Monthly Rent</span>
+                                            <span class="spec-value price">$${apartment.rent.toLocaleString()}</span>
+                                        </div>
+                                        <div class="spec-item">
+                                            <span class="spec-label">Deposit</span>
+                                            <span class="spec-value">$${apartment.deposit.toLocaleString()}</span>
+                                        </div>
+                                        <div class="spec-item">
+                                            <span class="spec-label">Bedrooms</span>
+                                            <span class="spec-value">${apartment.bedrooms === 'studio' ? 'Studio' : apartment.bedrooms}</span>
+                                        </div>
+                                        <div class="spec-item">
+                                            <span class="spec-label">Bathrooms</span>
+                                            <span class="spec-value">${apartment.bathrooms}</span>
+                                        </div>
+                                    </div>
+
+                                    ${apartment.amenities && apartment.amenities.length > 0 ? `
+                                        <div class="amenities">
+                                            <h4>Amenities</h4>
+                                            <div class="amenity-tags">
+                                                ${apartment.amenities.map(amenity => `
+                                                    <span class="amenity-tag">${amenity}</span>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
+                                    ${apartment.pets_allowed ? `
+                                        <div class="amenities">
+                                            <h4>Pet Policy</h4>
+                                            <div class="amenity-tags">
+                                                <span class="amenity-tag">🐾 Pets Allowed (Max: ${apartment.max_pets})</span>
+                                                <span class="amenity-tag">Pet Deposit: $${apartment.pet_deposit}</span>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
+                                    <div class="apartment-actions">
+                                        <button class="action-button primary-action" onclick="contactProperty('${apartment.name}')">
+                                            Contact Property
+                                        </button>
+                                        <button class="action-button secondary-action" onclick="saveForLater('${apartment.name}')">
+                                            Save for Later
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function contactProperty(name) {
+            alert(`Contact feature coming soon for ${name}!\n\nIn production, this would:\n- Send your pre-filled application\n- Schedule a tour\n- Connect you with the leasing office`);
+        }
+
+        function saveForLater(name) {
+            alert(`Saved ${name} to your favorites!\n\nIn production, this would save to your account.`);
+        }
+    </script>
+</body>
+</html>
