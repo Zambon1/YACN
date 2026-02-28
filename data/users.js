@@ -54,7 +54,15 @@ export function findUserById(id) {
 
 // Function to create a new user
 export function createUser(email, username, password) {
-    const id = Date.now().toString(); // Simple ID generation
+    const maxExistingId = users.reduce((maxId, user) => {
+        const numericId = Number.parseInt(user.id, 10);
+        if (Number.isNaN(numericId)) {
+            return maxId;
+        }
+        return Math.max(maxId, numericId);
+    }, 0);
+
+    const id = (maxExistingId + 1).toString();
     const newUser = {
         id,
         email,
