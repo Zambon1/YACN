@@ -11,12 +11,23 @@ export const checkUserApplication = (req, res) => {
         const token = req.headers.authorization?.replace('Bearer ', '');
         const session = token ? getSession(token) : null;
 
-        if (!session || !session.userId) {
-            return res.json({ hasApplication: false });
+        const applications = loadApplications();
+        let userApplication = null;
+
+        // Primary check: by userId if logged in
+        if (session && session.userId) {
+            userApplication = applications.find(app => app.userId === session.userId);
         }
 
-        const applications = loadApplications();
-        const userApplication = applications.find(app => app.userId === session.userId);
+        // Fallback: check by email if no userId match or not logged in
+        if (!userApplication && session && session.email) {
+            userApplication = applications.find(app => app.email === session.email);
+        }
+
+        // Last resort: if we have an email from params/body, check by that
+        if (!userApplication && req.query?.email) {
+            userApplication = applications.find(app => app.email === req.query.email);
+        }
 
         res.json({ 
             hasApplication: !!userApplication,

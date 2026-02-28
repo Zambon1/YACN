@@ -35,11 +35,30 @@ function logout() {
 // Check if user has submitted an application
 async function hasSubmittedApplication() {
     const user = getCurrentUser();
-    if (!user) return false;
     
+    // Always check localStorage first - this is the source of truth for unlogged-in users
+    if (user) {
+        const submittedKey = `application_submitted_${user.id || user.email}`;
+        const submitted = localStorage.getItem(submittedKey);
+        if (submitted) {
+            try {
+                const app = JSON.parse(submitted);
+                if (app.submitted === true) {
+                    return true;
+                }
+            } catch (e) {
+                console.error('Error parsing submitted application:', e);
+            }
+        }
+    }
+    
+    // If no localStorage record, check backend
     try {
         const sessionToken = localStorage.getItem('session_token');
-        const response = await fetch('http://localhost:5000/api/user-application', {
+        const userEmail = user?.email ? `&email=${encodeURIComponent(user.email)}` : '';
+        const url = `http://localhost:5000/api/user-application?${userEmail}`;
+        
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Authorization': 'Bearer ' + sessionToken
@@ -48,15 +67,23 @@ async function hasSubmittedApplication() {
         
         if (response.ok) {
             const data = await response.json();
+            if (data.hasApplication === true && user) {
+                // Cache this in localStorage for offline access
+                const submittedKey = `application_submitted_${user.id || user.email}`;
+                localStorage.setItem(submittedKey, JSON.stringify({
+                    submitted: true,
+                    submittedAt: new Date().toISOString(),
+                    data: data.application
+                }));
+                return true;
+            }
             return data.hasApplication === true;
         }
     } catch (err) {
         console.error('Error checking application status:', err);
     }
     
-    // Fallback to localStorage for offline/error cases
-    const applicationKey = `application_${user.id || user.email}`;
-    return localStorage.getItem(applicationKey) !== null;
+    return false;
 }
 
 function getSettingsStorageKey() {
@@ -101,6 +128,21 @@ function consumePostLoginRedirect() {
     const path = localStorage.getItem('post_login_redirect');
     localStorage.removeItem('post_login_redirect');
     return path || 'index.html';
+}
+
+async function routeToApplicationOrStatus() {
+    if (!isLoggedIn()) {
+        setPostLoginRedirect('application.html');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    if (await hasSubmittedApplication()) {
+        window.location.href = 'results.html';
+        return;
+    }
+
+    window.location.href = 'application.html';
 }
 
 // Check application status and redirect
@@ -175,6 +217,17 @@ if (window.location.pathname.endsWith('application.html')) {
         setPostLoginRedirect('application.html');
         window.location.href = 'login.html';
     }
+
+    const isEditingApplication = sessionStorage.getItem('editingApplication') === 'true';
+    const shouldShowNoApplicationMessage = localStorage.getItem('show_no_application_message') === 'true';
+
+    if (!isEditingApplication && !shouldShowNoApplicationMessage) {
+        hasSubmittedApplication().then(hasApplication => {
+            if (hasApplication) {
+                window.location.href = 'results.html';
+            }
+        });
+    }
     
     // Check if we should show "no application" message
     if (localStorage.getItem('show_no_application_message') === 'true') {
@@ -247,6 +300,20 @@ if (window.location.pathname.endsWith('settings.html')) {
     });
 }
 
+if (window.location.pathname.endsWith('results.html')) {
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!isLoggedIn()) return;
+
+        const applyNowLink = document.querySelector('.navbar .nav-links a[href="application.html"]');
+        if (applyNowLink) {
+            const applyNowItem = applyNowLink.closest('li');
+            if (applyNowItem) {
+                applyNowItem.remove();
+            }
+        }
+    });
+}
+
 // Smooth scrolling for navigation links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
@@ -263,25 +330,17 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 // Protect links that go to application page
 document.querySelectorAll('a[href="application.html"]').forEach(link => {
-    link.addEventListener('click', function(e) {
-        if (!isLoggedIn()) {
-            e.preventDefault();
-            setPostLoginRedirect('application.html');
-            window.location.href = 'login.html';
-        }
+    link.addEventListener('click', async function(e) {
+        e.preventDefault();
+        await routeToApplicationOrStatus();
     });
 });
 
 // Silhouette click handler - navigate to login/application page
 const silhouette = document.querySelector('.person-silhouette');
 if (silhouette) {
-    silhouette.addEventListener('click', function() {
-        if (isLoggedIn()) {
-            window.location.href = 'application.html';
-        } else {
-            setPostLoginRedirect('application.html');
-            window.location.href = 'login.html';
-        }
+    silhouette.addEventListener('click', async function() {
+        await routeToApplicationOrStatus();
     });
 }
 
@@ -383,11 +442,15 @@ if (applicationForm) {
                 // Mark that user has submitted an application
                 const user = getCurrentUser();
                 if (user) {
-                    const applicationKey = `application_${user.id || user.email}`;
-                    localStorage.setItem(applicationKey, JSON.stringify({
+                    const submittedKey = `application_submitted_${user.id || user.email}`;
+                    localStorage.setItem(submittedKey, JSON.stringify({
+                        submitted: true,
                         submittedAt: new Date().toISOString(),
                         data: data
                     }));
+                    // Clear draft
+                    const draftKey = `application_draft_${user.id || user.email}`;
+                    localStorage.removeItem(draftKey);
                 }
                 
                 // Store results in sessionStorage
@@ -422,13 +485,13 @@ document.querySelectorAll('input[type="tel"]').forEach(input => {
     });
 });
 
-// Get saved application data from localStorage
+// Get saved application data from localStorage (draft only)
 function getSavedApplication() {
     const user = getCurrentUser();
     if (!user) return null;
     
-    const applicationKey = `application_${user.id || user.email}`;
-    const saved = localStorage.getItem(applicationKey);
+    const draftKey = `application_draft_${user.id || user.email}`;
+    const saved = localStorage.getItem(draftKey);
     return saved ? JSON.parse(saved) : null;
 }
 
@@ -450,6 +513,51 @@ function populateFormFromSavedApplication() {
     return true;
 }
 
+// Auto-save form data to localStorage as user types
+function setupAutoSave() {
+    const form = document.getElementById('applicationForm');
+    if (!form) return;
+    
+    const user = getCurrentUser();
+    if (!user) return;
+    
+    const draftKey = `application_draft_${user.id || user.email}`;
+    
+    // Save form data function
+    function saveFormData() {
+        const formData = new FormData(form);
+        const data = {};
+        
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+        
+        localStorage.setItem(draftKey, JSON.stringify({
+            savedAt: new Date().toISOString(),
+            data: data
+        }));
+    }
+    
+    // Auto-save on inputs and selects
+    const inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('change', saveFormData);
+        input.addEventListener('blur', saveFormData);
+    });
+}
+
+// Load saved form on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('applicationForm');
+    if (form && getCurrentUser()) {
+        // Populate with saved data if available
+        populateFormFromSavedApplication();
+        
+        // Setup autosave
+        setupAutoSave();
+    }
+});
+
 // Handle editing an application
 if (window.location.pathname.endsWith('application.html') && sessionStorage.getItem('editingApplication') === 'true') {
     sessionStorage.removeItem('editingApplication');
@@ -463,9 +571,28 @@ if (window.location.pathname.endsWith('application.html') && sessionStorage.getI
                 submitButton.textContent = 'Update and Find Matches';
             }
             
-            // Populate form with saved application data
+            // Populate form with submitted application data
             setTimeout(() => {
-                if (populateFormFromSavedApplication()) {
+                const user = getCurrentUser();
+                let applicationLoaded = false;
+                
+                if (user) {
+                    const submittedKey = `application_submitted_${user.id || user.email}`;
+                    const submitted = localStorage.getItem(submittedKey);
+                    if (submitted) {
+                        const app = JSON.parse(submitted);
+                        const data = app.data;
+                        Object.keys(data).forEach(key => {
+                            const field = document.getElementById(key);
+                            if (field) {
+                                field.value = data[key];
+                            }
+                        });
+                        applicationLoaded = true;
+                    }
+                }
+                
+                if (applicationLoaded) {
                     // Show edit notice
                     const messageDiv = document.createElement('div');
                     messageDiv.className = 'info-message';

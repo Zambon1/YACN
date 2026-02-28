@@ -98,6 +98,10 @@ body {
     transition: background-color 0.3s, color 0.3s;
 }
 
+.nav-links li:nth-child(3) a {
+    font-weight: 700;
+}
+
 .nav-links a:hover {
     background-color: var(--primary-color);
     color: white;
@@ -106,6 +110,7 @@ body {
 /* User Profile */
 .user-profile {
     position: relative;
+    margin-left: auto;
 }
 
 .user-profile-trigger {
@@ -697,7 +702,9 @@ body {
 /* How It Works Section */
 .how-it-works {
     padding: 80px 20px;
-    background-color: var(--bg-white);
+    background: linear-gradient(135deg, var(--bg-white) 0%, var(--bg-light) 100%);
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
 }
 
 .how-it-works h2 {
@@ -715,7 +722,17 @@ body {
 
 .step {
     text-align: center;
-    padding: 2rem;
+    padding: 2.5rem;
+    background-color: var(--bg-light);
+    border: 1px solid black;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.step:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .step-number {
@@ -730,6 +747,8 @@ body {
     font-size: 1.5rem;
     font-weight: bold;
     margin: 0 auto 1.5rem;
+    border: 2px solid var(--primary-dark);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .step h3 {
@@ -743,8 +762,9 @@ body {
 }
 
 .testimonials {
-    padding: 80px 20px;
-    background-color: var(--bg-light);
+    padding: 40px 20px 80px 20px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    border-top: 1px solid black;
 }
 
 .testimonials h2 {
