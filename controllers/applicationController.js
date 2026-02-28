@@ -82,7 +82,6 @@ export const submitApplication = async (req, res) => {
 
         await createApplicationRecord({
             userId: session?.user_id || null,
-            username: session?.username || null,
             email: session?.email || applicantData.email || null,
             applicantData,
             matchCount: matches.length,
