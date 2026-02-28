@@ -64,6 +64,7 @@ function mapPayloadToApplicationColumns(payload) {
 
     return {
         user_id: payload?.userId || payload?.user_id || null,
+        application_data: applicantData,
         unit_id: parseOptionalInt(applicantData.unitId),
         first_name: applicantData.firstName || null,
         last_name: applicantData.lastName || null,
@@ -90,29 +91,34 @@ function toApplicationResponse(row) {
         return null;
     }
 
+    const fullApplicationData = row.application_data && typeof row.application_data === 'object'
+        ? row.application_data
+        : {};
+
     return {
         id: row.id,
         userId: row.user_id,
         email: row.email,
         applicantData: {
-            firstName: row.first_name,
-            lastName: row.last_name,
-            gender: row.gender,
-            email: row.email,
-            photoId: row.photo_id,
-            employmentStatus: row.employment_status,
-            monthlyIncome: row.monthly_income,
-            validPayStubs: row.valid_pay_stubs,
-            pets: row.pets,
-            birthday: row.birthday,
-            driverLicense: row.driver_license,
-            employmentHist: row.employment_hist,
-            children: row.children,
-            guarantorId: row.guarantor_id,
-            creditScore: row.credit_score,
-            evictions: row.evictions,
-            criminalRecord: row.criminal_record,
-            unitId: row.unit_id
+            ...fullApplicationData,
+            firstName: row.first_name ?? fullApplicationData.firstName ?? null,
+            lastName: row.last_name ?? fullApplicationData.lastName ?? null,
+            gender: row.gender ?? fullApplicationData.gender ?? null,
+            email: row.email ?? fullApplicationData.email ?? null,
+            photoId: row.photo_id ?? fullApplicationData.photoId ?? null,
+            employmentStatus: row.employment_status ?? fullApplicationData.employmentStatus ?? null,
+            monthlyIncome: row.monthly_income ?? fullApplicationData.monthlyIncome ?? null,
+            validPayStubs: row.valid_pay_stubs ?? fullApplicationData.validPayStubs ?? null,
+            pets: row.pets ?? fullApplicationData.pets ?? null,
+            birthday: row.birthday ?? fullApplicationData.birthday ?? fullApplicationData.dob ?? null,
+            driverLicense: row.driver_license ?? fullApplicationData.driverLicense ?? null,
+            employmentHist: row.employment_hist ?? fullApplicationData.employmentHist ?? null,
+            children: row.children ?? fullApplicationData.children ?? null,
+            guarantorId: row.guarantor_id ?? fullApplicationData.guarantorId ?? null,
+            creditScore: row.credit_score ?? fullApplicationData.creditScore ?? null,
+            evictions: row.evictions ?? fullApplicationData.evictions ?? null,
+            criminalRecord: row.criminal_record ?? fullApplicationData.criminalRecord ?? null,
+            unitId: row.unit_id ?? fullApplicationData.unitId ?? null
         },
         createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
         topRejectionReasons: []
@@ -145,28 +151,30 @@ export async function createApplicationRecord(payload) {
                 UPDATE applications
                 SET
                     user_id = $1,
-                    unit_id = $2,
-                    first_name = $3,
-                    last_name = $4,
-                    gender = $5,
-                    email = $6,
-                    photo_id = $7,
-                    employment_status = $8,
-                    monthly_income = $9,
-                    valid_pay_stubs = $10,
-                    pets = $11,
-                    birthday = $12,
-                    driver_license = $13,
-                    employment_hist = $14,
-                    children = $15,
-                    guarantor_id = $16,
-                    credit_score = $17,
-                    evictions = $18,
-                    criminal_record = $19
-                WHERE id = $20
+                    application_data = $2,
+                    unit_id = $3,
+                    first_name = $4,
+                    last_name = $5,
+                    gender = $6,
+                    email = $7,
+                    photo_id = $8,
+                    employment_status = $9,
+                    monthly_income = $10,
+                    valid_pay_stubs = $11,
+                    pets = $12,
+                    birthday = $13,
+                    driver_license = $14,
+                    employment_hist = $15,
+                    children = $16,
+                    guarantor_id = $17,
+                    credit_score = $18,
+                    evictions = $19,
+                    criminal_record = $20
+                WHERE id = $21
                 RETURNING *
             `, [
                 applicationValues.user_id,
+                applicationValues.application_data,
                 applicationValues.unit_id,
                 applicationValues.first_name,
                 applicationValues.last_name,
@@ -194,6 +202,7 @@ export async function createApplicationRecord(payload) {
         const { rows } = await client.query(`
             INSERT INTO applications (
                 user_id,
+                application_data,
                 unit_id,
                 first_name,
                 last_name,
@@ -215,11 +224,12 @@ export async function createApplicationRecord(payload) {
             )
             VALUES (
                 $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-                $11, $12, $13, $14, $15, $16, $17, $18, $19
+                $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
             )
             RETURNING *
         `, [
             applicationValues.user_id,
+            applicationValues.application_data,
             applicationValues.unit_id,
             applicationValues.first_name,
             applicationValues.last_name,

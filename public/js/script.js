@@ -75,7 +75,7 @@ async function hasSubmittedApplication() {
                 localStorage.setItem(submittedKey, JSON.stringify({
                     submitted: true,
                     submittedAt: new Date().toISOString(),
-                    data: data.application
+                    data: data.application?.applicantData || data.application || {}
                 }));
                 return true;
             }
@@ -92,6 +92,12 @@ function getSettingsStorageKey() {
     const user = getCurrentUser();
     if (!user) return null;
     return `settings_${user.id || user.email}`;
+}
+
+function getMatchResultsStorageKey() {
+    const user = getCurrentUser();
+    if (!user) return null;
+    return `match_results_${user.id || user.email}`;
 }
 
 function getUserSettings() {
@@ -407,6 +413,10 @@ const applicationForm = document.getElementById('applicationForm');
 if (applicationForm) {
     applicationForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        const isEditingSession =
+            sessionStorage.getItem('editingApplication') === 'true' ||
+            sessionStorage.getItem('editingApplicationActive') === 'true';
         
         // Get form data
         const formData = new FormData(this);
@@ -451,6 +461,12 @@ if (applicationForm) {
                         submittedAt: new Date().toISOString(),
                         data: data
                     }));
+
+                    const matchResultsKey = getMatchResultsStorageKey();
+                    if (matchResultsKey) {
+                        localStorage.setItem(matchResultsKey, JSON.stringify(result));
+                    }
+
                     // Clear draft
                     const draftKey = `application_draft_${user.id || user.email}`;
                     localStorage.removeItem(draftKey);
@@ -458,9 +474,14 @@ if (applicationForm) {
                 
                 // Store results in sessionStorage
                 sessionStorage.setItem('matchResults', JSON.stringify(result));
+
+                if (isEditingSession) {
+                    sessionStorage.removeItem('editingApplication');
+                    sessionStorage.removeItem('editingApplicationActive');
+                }
                 
                 // Redirect to results page
-                window.location.href = 'results.html';
+                window.location.replace('results.html');
             } else {
                 alert('Error: ' + (result.error || 'Failed to process application'));
                 submitButton.textContent = originalText;
@@ -498,22 +519,85 @@ function getSavedApplication() {
     return saved ? JSON.parse(saved) : null;
 }
 
+function normalizeApplicationFormData(rawData) {
+    if (!rawData) return null;
+
+    if (rawData.applicantData) {
+        return rawData.applicantData;
+    }
+
+    if (rawData.data && rawData.data.applicantData) {
+        return rawData.data.applicantData;
+    }
+
+    if (rawData.data && typeof rawData.data === 'object') {
+        return rawData.data;
+    }
+
+    if (typeof rawData === 'object') {
+        return rawData;
+    }
+
+    return null;
+}
+
+function setFormValues(data) {
+    if (!data || typeof data !== 'object') return false;
+
+    let populated = false;
+    Object.keys(data).forEach(key => {
+        const field = document.getElementById(key);
+        if (field && data[key] !== undefined && data[key] !== null) {
+            field.value = data[key];
+            populated = true;
+        }
+    });
+
+    return populated;
+}
+
+async function fetchSubmittedApplicationFromBackend() {
+    const sessionToken = localStorage.getItem('session_token');
+    if (!sessionToken) return null;
+
+    const user = getCurrentUser();
+    const userEmail = user?.email ? `&email=${encodeURIComponent(user.email)}` : '';
+
+    try {
+        const response = await fetch(`http://localhost:5000/api/user-application?${userEmail}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + sessionToken
+            }
+        });
+
+        if (!response.ok) return null;
+
+        const payload = await response.json();
+        if (!payload.hasApplication || !payload.application) return null;
+
+        const data = normalizeApplicationFormData(payload.application);
+        if (user && data) {
+            const submittedKey = `application_submitted_${user.id || user.email}`;
+            localStorage.setItem(submittedKey, JSON.stringify({
+                submitted: true,
+                submittedAt: new Date().toISOString(),
+                data
+            }));
+        }
+
+        return data;
+    } catch (err) {
+        console.error('Error fetching submitted application from backend:', err);
+        return null;
+    }
+}
+
 // Populate form with saved application data
 function populateFormFromSavedApplication() {
     const saved = getSavedApplication();
-    if (!saved || !saved.data) return false;
-    
-    const data = saved.data;
-    
-    // Populate all form fields with data from saved application
-    Object.keys(data).forEach(key => {
-        const field = document.getElementById(key);
-        if (field) {
-            field.value = data[key];
-        }
-    });
-    
-    return true;
+    const data = normalizeApplicationFormData(saved);
+    return setFormValues(data);
 }
 
 // Auto-save form data to localStorage as user types
@@ -567,13 +651,15 @@ if (window.location.pathname.endsWith('application.html') && sessionStorage.getI
         // Update button text to reflect editing
         const form = document.getElementById('applicationForm');
         if (form) {
+            sessionStorage.setItem('editingApplicationActive', 'true');
+
             const submitButton = form.querySelector('.submit-button');
             if (submitButton) {
                 submitButton.textContent = 'Update and Find Matches';
             }
             
             // Populate form with submitted application data
-            setTimeout(() => {
+            setTimeout(async () => {
                 const user = getCurrentUser();
                 let applicationLoaded = false;
                 
@@ -582,14 +668,13 @@ if (window.location.pathname.endsWith('application.html') && sessionStorage.getI
                     const submitted = localStorage.getItem(submittedKey);
                     if (submitted) {
                         const app = JSON.parse(submitted);
-                        const data = app.data;
-                        Object.keys(data).forEach(key => {
-                            const field = document.getElementById(key);
-                            if (field) {
-                                field.value = data[key];
-                            }
-                        });
-                        applicationLoaded = true;
+                        const data = normalizeApplicationFormData(app);
+                        applicationLoaded = setFormValues(data);
+                    }
+
+                    if (!applicationLoaded) {
+                        const backendData = await fetchSubmittedApplicationFromBackend();
+                        applicationLoaded = setFormValues(backendData);
                     }
                 }
                 

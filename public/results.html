@@ -44,6 +44,27 @@
             overflow-x: hidden;
         }
 
+        .navbar .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 100%;
+            padding: 0 20px;
+        }
+
+        .navbar .logo {
+            margin-right: auto;
+        }
+
+        .navbar .nav-links {
+            margin-left: auto;
+        }
+
+        .navbar .user-profile {
+            margin-left: 1rem;
+        }
+
         .results-hero {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
             color: white;
@@ -987,7 +1008,7 @@
     <nav class="navbar">
         <div class="container">
             <div class="logo">
-                <h1>🏠 Rent Finalis</h1>
+                <img src="logoblack.png" alt="Rent Finalis" class="navbar-logo">
             </div>
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
@@ -1082,7 +1103,9 @@
         </div>
     </footer>
 
+    <script src="js/script.js"></script>
     <script>
+
         // Hide Apply Now nav item for logged-in users on results page
         const hasSession = localStorage.getItem('session_token') !== null;
         if (hasSession) {
@@ -1092,8 +1115,8 @@
             }
         }
 
-        // Load results from sessionStorage
-        const resultsData = JSON.parse(sessionStorage.getItem('matchResults'));
+        // Load results scoped to the currently logged in user
+        let resultsData = null;
         let allMatches = [];
         let savedMatches = [];
         let appliedMatches = [];
@@ -1102,6 +1125,85 @@
         let currentResultsMatches = [];
         let currentViewMode = 'grid';
         let messageTimeoutId = null;
+
+        function getCurrentUserFromStorage() {
+            try {
+                return JSON.parse(localStorage.getItem('rentmatch_user') || 'null');
+            } catch (error) {
+                console.error('Error parsing current user:', error);
+                return null;
+            }
+        }
+
+        function getMatchResultsStorageKeyForUser(user) {
+            if (!user) return null;
+            return `match_results_${user.id || user.email}`;
+        }
+
+        function isMatchResultForUser(data, user) {
+            if (!data || !user) return false;
+            const resultEmail = data?.applicant?.email;
+            if (!resultEmail) return true;
+            return String(resultEmail).toLowerCase() === String(user.email || '').toLowerCase();
+        }
+
+        function getCachedMatchResults(user) {
+            const key = getMatchResultsStorageKeyForUser(user);
+            if (!key) return null;
+
+            try {
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : null;
+            } catch (error) {
+                console.error('Error parsing cached match results:', error);
+                return null;
+            }
+        }
+
+        function cacheMatchResults(user, data) {
+            const key = getMatchResultsStorageKeyForUser(user);
+            if (!key || !data) return;
+            localStorage.setItem(key, JSON.stringify(data));
+            sessionStorage.setItem('matchResults', JSON.stringify(data));
+        }
+
+        async function buildResultsFromSavedApplication(user) {
+            const token = localStorage.getItem('session_token');
+            if (!token || !user) return null;
+
+            const emailQuery = user.email ? `&email=${encodeURIComponent(user.email)}` : '';
+            const appResponse = await fetch(`http://localhost:5000/api/user-application?${emailQuery}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+
+            if (!appResponse.ok) return null;
+            const appPayload = await appResponse.json();
+            if (!appPayload?.hasApplication || !appPayload?.application) return null;
+
+            const applicantData = appPayload.application?.applicantData || null;
+            if (!applicantData) return null;
+
+            const submitPayload = {
+                ...applicantData,
+                email: applicantData.email || user.email || ''
+            };
+
+            const resultsResponse = await fetch('http://localhost:5000/api/submit-application', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(submitPayload)
+            });
+
+            if (!resultsResponse.ok) return null;
+            const rebuiltResults = await resultsResponse.json();
+            return rebuiltResults?.success ? rebuiltResults : null;
+        }
 
         function showResultsMessage(message, type = 'info') {
             const messageBox = document.getElementById('resultsActionMessage');
@@ -1229,14 +1331,45 @@
             setSavedButtonActive(mode === 'saved');
         }
 
-        loadSavedMatches();
-        loadAppliedMatches();
+        async function initializeResultsPage() {
+            loadSavedMatches();
+            loadAppliedMatches();
 
-        if (!resultsData) {
-            window.location.href = 'index.html';
-        } else {
+            const user = getCurrentUserFromStorage();
+            const sessionResults = (() => {
+                try {
+                    return JSON.parse(sessionStorage.getItem('matchResults') || 'null');
+                } catch (error) {
+                    console.error('Error parsing session match results:', error);
+                    return null;
+                }
+            })();
+
+            const cachedResults = getCachedMatchResults(user);
+
+            if (isMatchResultForUser(sessionResults, user)) {
+                resultsData = sessionResults;
+            } else if (isMatchResultForUser(cachedResults, user)) {
+                resultsData = cachedResults;
+            } else {
+                try {
+                    resultsData = await buildResultsFromSavedApplication(user);
+                } catch (error) {
+                    console.error('Error rebuilding results from saved application:', error);
+                    resultsData = null;
+                }
+            }
+
+            if (!resultsData) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            cacheMatchResults(user, resultsData);
             displayResults(resultsData);
         }
+
+        initializeResultsPage();
 
         function displayResults(data) {
             const summaryDiv = document.getElementById('resultsSummary');
