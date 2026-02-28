@@ -1,0 +1,1 @@
+ALTER TABLE leaser ADD license_number INT NOT NULL;
