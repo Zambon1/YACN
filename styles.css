@@ -186,6 +186,54 @@ body {
     transform: translateX(-50%);
     z-index: 10;
     text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.person-silhouette:hover .person-icon svg {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1)) drop-shadow(0 0 20px rgba(217, 119, 87, 0.6));
+}
+
+.person-silhouette:hover .person-icon svg circle,
+.person-silhouette:hover .person-icon svg rect {
+    stroke: var(--primary-color);
+    stroke-width: 3;
+}
+
+.person-silhouette:hover .silhouette-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+.silhouette-tooltip {
+    position: absolute;
+    top: -45px;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    background: var(--primary-color);
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(217, 119, 87, 0.4);
+}
+
+.silhouette-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid var(--primary-color);
 }
 
 .person-icon {
@@ -279,18 +327,13 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     border: 3px solid var(--border-color);
     transition: all 0.3s ease;
-    cursor: pointer;
+    cursor: default;
     z-index: 5;
     opacity: 0;
     animation: fadeInNode 0.5s ease-out forwards;
     width: 220px;
     transform: translateX(-50%) rotate(var(--node-rotation, 0deg));
-}
-
-.apartment-node:hover {
-    transform: translateX(-50%) rotate(var(--node-rotation, 0deg)) translateY(-5px) scale(1.05);
-    box-shadow: 0 8px 20px rgba(217, 119, 87, 0.3);
-    border-color: var(--primary-color);
+    pointer-events: none;
 }
 
 .node-image {
@@ -681,6 +724,35 @@ body {
     border-color: var(--success-color);
 }
 
+.field-hint {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-top: 0.35rem;
+    font-style: italic;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-dark);
+    padding: 0.5rem 0;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+.checkbox-label span {
+    user-select: none;
+}
+
 .reference-group {
     padding: 1.5rem;
     background-color: var(--bg-light);
@@ -973,6 +1045,90 @@ body {
 
     .action-button {
         width: 100%;
+    }
+}
+
+/* Login/Signup Page Styles */
+.login-section {
+    min-height: calc(100vh - 200px);
+    padding: 4rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-container {
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.auth-card {
+    background: white;
+    padding: 3rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--border-color);
+}
+
+.auth-card h2 {
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+    text-align: center;
+}
+
+.auth-card .section-subtitle {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--text-light);
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.auth-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.auth-form .submit-button {
+    margin-top: 0.5rem;
+    width: 100%;
+}
+
+.auth-switch {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+.auth-switch a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.auth-switch a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.hidden {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .auth-card {
+        padding: 2rem 1.5rem;
+    }
+    
+    .login-section {
+        padding: 2rem 0;
     }
 }
 

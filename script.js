@@ -1,3 +1,38 @@
+// Authentication helpers
+function isLoggedIn() {
+    return localStorage.getItem('rentmatch_user') !== null;
+}
+
+function getCurrentUser() {
+    const userJson = localStorage.getItem('rentmatch_user');
+    return userJson ? JSON.parse(userJson) : null;
+}
+
+function setCurrentUser(user) {
+    localStorage.setItem('rentmatch_user', JSON.stringify(user));
+}
+
+function logout() {
+    localStorage.removeItem('rentmatch_user');
+    window.location.href = 'index.html';
+}
+
+// Check authentication for application page
+if (window.location.pathname.endsWith('application.html')) {
+    if (!isLoggedIn()) {
+        window.location.href = 'login.html';
+    }
+}
+
+// Logout button handler
+const logoutButton = document.getElementById('logoutButton');
+if (logoutButton) {
+    logoutButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        logout();
+    });
+}
+
 // Smooth scrolling for navigation links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
@@ -11,6 +46,28 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         }
     });
 });
+
+// Protect links that go to application page
+document.querySelectorAll('a[href="application.html"]').forEach(link => {
+    link.addEventListener('click', function(e) {
+        if (!isLoggedIn()) {
+            e.preventDefault();
+            window.location.href = 'login.html';
+        }
+    });
+});
+
+// Silhouette click handler - navigate to login/application page
+const silhouette = document.querySelector('.person-silhouette');
+if (silhouette) {
+    silhouette.addEventListener('click', function() {
+        if (isLoggedIn()) {
+            window.location.href = 'application.html';
+        } else {
+            window.location.href = 'login.html';
+        }
+    });
+}
 
 // Update SVG line endpoints to follow apartment node centers
 function updateBranchLines() {
@@ -168,3 +225,111 @@ document.querySelectorAll('input[required], select[required]').forEach(field => 
         }
     });
 });
+
+// Login/Signup page functionality
+const loginCard = document.getElementById('loginCard');
+const signupCard = document.getElementById('signupCard');
+const showSignupLink = document.getElementById('showSignup');
+const showLoginLink = document.getElementById('showLogin');
+const loginForm = document.getElementById('loginForm');
+const signupForm = document.getElementById('signupForm');
+
+// Toggle between login and signup
+if (showSignupLink) {
+    showSignupLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        loginCard.classList.add('hidden');
+        signupCard.classList.remove('hidden');
+    });
+}
+
+if (showLoginLink) {
+    showLoginLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        signupCard.classList.add('hidden');
+        loginCard.classList.remove('hidden');
+    });
+}
+
+// Signup form password validation
+const signupPassword = document.getElementById('signupPassword');
+const signupConfirmPassword = document.getElementById('signupConfirmPassword');
+
+if (signupPassword && signupConfirmPassword) {
+    const validateSignupPasswords = () => {
+        if (signupConfirmPassword.value === '') {
+            signupConfirmPassword.setCustomValidity('');
+            return;
+        }
+        
+        if (signupPassword.value !== signupConfirmPassword.value) {
+            signupConfirmPassword.setCustomValidity('Passwords do not match');
+            signupConfirmPassword.style.borderColor = '#ef4444';
+        } else {
+            signupConfirmPassword.setCustomValidity('');
+            signupConfirmPassword.style.borderColor = '#10b981';
+        }
+    };
+
+    signupPassword.addEventListener('input', validateSignupPasswords);
+    signupConfirmPassword.addEventListener('input', validateSignupPasswords);
+}
+
+// Handle signup form submission
+if (signupForm) {
+    signupForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('signupEmail').value;
+        const username = document.getElementById('signupUsername').value;
+        const password = document.getElementById('signupPassword').value;
+        const confirmPassword = document.getElementById('signupConfirmPassword').value;
+        
+        if (password !== confirmPassword) {
+            alert('Passwords do not match');
+            return;
+        }
+        
+        // Create user account (in a real app, this would be sent to a server)
+        const user = {
+            email: email,
+            username: username,
+            // In a real app, never store passwords in plain text!
+            createdAt: new Date().toISOString()
+        };
+        
+        // Store user in localStorage
+        setCurrentUser(user);
+        
+        // Redirect to application page
+        window.location.href = 'application.html';
+    });
+}
+
+// Handle login form submission
+if (loginForm) {
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        // In a real app, this would validate against a server
+        // For now, we'll just check if any user exists in localStorage
+        const existingUser = getCurrentUser();
+        
+        if (!existingUser) {
+            alert('No account found. Please create an account first.');
+            return;
+        }
+        
+        // Simple validation - in real app, would check password on server
+        if (existingUser.email !== email) {
+            alert('Invalid email or password');
+            return;
+        }
+        
+        // Login successful
+        window.location.href = 'application.html';
+    });
+}
