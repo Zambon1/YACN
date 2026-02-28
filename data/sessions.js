@@ -1,47 +1,43 @@
-// Session database - stores active user sessions
-// Each session has a unique token that clients use to authenticate
-
+// Session database - PostgreSQL backend
 import db from '../utils/db.js';
 import crypto from 'crypto';
 
 export async function createSession(userId) {
-    const token = crypto.randomBytes(64).toString('hex');
-    const client = await db.connect();
     try {
-        await client.query(`
-            INSERT INTO sessions (user_id, token, created_at)
-            VALUES ($1, $2, NOW())
+        const token = crypto.randomBytes(64).toString('hex');
+        await db.query(`
+            INSERT INTO sessions (user_id, token)
+            VALUES ($1, $2)
         `, [userId, token]);
         return token;
-    } finally {
-        client.release();
+    } catch (error) {
+        console.error('Error creating session:', error);
+        throw error;
     }
 }
 
 export async function getSession(token) {
-    const client = await db.connect();
     try {
-        const {rows} = await client.query(`
-            SELECT s.*, u.id, u.email, u.username, u.first_name, u.last_name
+        const result = await db.query(`
+            SELECT s.*, u.id as user_id, u.email, u.username, u.first_name, u.last_name
             FROM sessions s
             JOIN users u ON s.user_id = u.id
             WHERE s.token = $1
         `, [token]);
-        return rows[0] || null;
-    } finally {
-        client.release();
+        return result.rows[0] || null;
+    } catch (error) {
+        console.error('Error getting session:', error);
+        throw error;
     }
 }
 
 export async function destroySession(token) {
-    const client = await db.connect();
     try {
-        const {rowCount} = await client.query(`
-            DELETE FROM sessions WHERE token = $1
-        `, [token]);
-        return rowCount > 0;
-    } finally {
-        client.release();
+        const result = await db.query('DELETE FROM sessions WHERE token = $1', [token]);
+        return result.rowCount > 0;
+    } catch (error) {
+        console.error('Error destroying session:', error);
+        throw error;
     }
 }
 

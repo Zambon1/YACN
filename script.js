@@ -1,6 +1,8 @@
 // Authentication helpers - now using backend sessions
 function isLoggedIn() {
-    return localStorage.getItem('session_token') !== null;
+    const hasToken = localStorage.getItem('session_token') !== null;
+    console.log('isLoggedIn check:', hasToken);
+    return hasToken;
 }
 
 function getCurrentUser() {
@@ -160,9 +162,14 @@ async function checkApplicationStatus() {
 // Update user profile display on page load
 function updateUserDisplay() {
     const userProfile = document.querySelector('.user-profile');
-    if (!userProfile) return;
+    if (!userProfile) {
+        console.warn('User profile element not found');
+        return;
+    }
     
     const user = getCurrentUser();
+    console.log('Updating user display, logged in:', !!user);
+    
     if (user) {
         userProfile.innerHTML = `
             <div class="user-profile-trigger">
@@ -204,6 +211,7 @@ function updateUserDisplay() {
             });
         }
     } else {
+        console.log('No user found, showing login button');
         userProfile.innerHTML = '<a href="login.html" class="login-btn">Login</a>';
     }
 }
@@ -212,42 +220,37 @@ function updateUserDisplay() {
 document.addEventListener('DOMContentLoaded', updateUserDisplay);
 
 // Check authentication for application page
-if (window.location.pathname.endsWith('application.html')) {
-    if (!isLoggedIn()) {
-        setPostLoginRedirect('application.html');
-        window.location.href = 'login.html';
-    }
-
-    const isEditingApplication = sessionStorage.getItem('editingApplication') === 'true';
-    const shouldShowNoApplicationMessage = localStorage.getItem('show_no_application_message') === 'true';
-
-    if (!isEditingApplication && !shouldShowNoApplicationMessage) {
-        hasSubmittedApplication().then(hasApplication => {
-            if (hasApplication) {
-                window.location.href = 'results.html';
-            }
-        });
-    }
+function checkApplicationPageAuth() {
+    const pathname = window.location.pathname;
+    console.log('Checking auth for pathname:', pathname);
     
-    // Check if we should show "no application" message
-    if (localStorage.getItem('show_no_application_message') === 'true') {
-        localStorage.removeItem('show_no_application_message');
-        
-        // Wait for DOM to load, then show message
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('applicationForm');
-            if (form) {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'info-message';
-                messageDiv.innerHTML = '<strong>No Application Found</strong><br>You haven\'t submitted an application yet. Fill out the form below to get started!';
-                form.parentElement.insertBefore(messageDiv, form);
-                
-                // Scroll to message
-                messageDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        });
+    if (pathname.endsWith('application.html') || pathname.endsWith('/application')) {
+        console.log('On application page, checking login status...');
+        if (!isLoggedIn()) {
+            console.log('Not logged in, redirecting to login page');
+            setPostLoginRedirect('application.html');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        console.log('User is logged in, checking for existing application...');
+        const isEditingApplication = sessionStorage.getItem('editingApplication') === 'true';
+        const shouldShowNoApplicationMessage = localStorage.getItem('show_no_application_message') === 'true';
+
+        if (!isEditingApplication && !shouldShowNoApplicationMessage) {
+            hasSubmittedApplication().then(hasApplication => {
+                if (hasApplication) {
+                    console.log('User has existing application, redirecting to results');
+                    window.location.href = 'results.html';
+                }
+            });
+        }
     }
 }
+
+// Run auth check immediately and on DOM ready
+checkApplicationPageAuth();
+document.addEventListener('DOMContentLoaded', checkApplicationPageAuth);
 
 if (window.location.pathname.endsWith('settings.html')) {
     if (!isLoggedIn()) {
@@ -647,53 +650,63 @@ document.querySelectorAll('input[required], select[required]').forEach(field => 
     });
 });
 
-// Login/Signup page functionality
-const loginCard = document.getElementById('loginCard');
-const signupCard = document.getElementById('signupCard');
-const showSignupLink = document.getElementById('showSignup');
-const showLoginLink = document.getElementById('showLogin');
-const loginForm = document.getElementById('loginForm');
-const signupForm = document.getElementById('signupForm');
+// Login/Signup page functionality - wrapped in DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Login/Signup page script loaded');
+    
+    const loginCard = document.getElementById('loginCard');
+    const signupCard = document.getElementById('signupCard');
+    const showSignupLink = document.getElementById('showSignup');
+    const showLoginLink = document.getElementById('showLogin');
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    
+    console.log('Login form found:', !!loginForm);
+    console.log('Signup form found:', !!signupForm);
 
-// Toggle between login and signup
-if (showSignupLink) {
-    showSignupLink.addEventListener('click', function(e) {
-        e.preventDefault();
-        loginCard.classList.add('hidden');
-        signupCard.classList.remove('hidden');
-        // Clear error messages
-        const loginError = document.getElementById('loginError');
-        if (loginError) {
-            loginError.textContent = '';
-            loginError.style.display = 'none';
-        }
-    });
-}
+    // Toggle between login and signup
+    if (showSignupLink) {
+        console.log('Attaching showSignup listener');
+        showSignupLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Show signup clicked');
+            loginCard.classList.add('hidden');
+            signupCard.classList.remove('hidden');
+            // Clear error messages
+            const loginError = document.getElementById('loginError');
+            if (loginError) {
+                loginError.textContent = '';
+                loginError.style.display = 'none';
+            }
+        });
+    }
 
-if (showLoginLink) {
-    showLoginLink.addEventListener('click', function(e) {
-        e.preventDefault();
-        signupCard.classList.add('hidden');
-        loginCard.classList.remove('hidden');
-        // Clear error messages
-        const signupError = document.getElementById('signupError');
-        if (signupError) {
-            signupError.textContent = '';
-            signupError.style.display = 'none';
-        }
-    });
-}
+    if (showLoginLink) {
+        console.log('Attaching showLogin listener');
+        showLoginLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Show login clicked');
+            signupCard.classList.add('hidden');
+            loginCard.classList.remove('hidden');
+            // Clear error messages
+            const signupError = document.getElementById('signupError');
+            if (signupError) {
+                signupError.textContent = '';
+                signupError.style.display = 'none';
+            }
+        });
+    }
 
-// Signup form password validation
-const signupPassword = document.getElementById('signupPassword');
-const signupConfirmPassword = document.getElementById('signupConfirmPassword');
+    // Signup form password validation
+    const signupPassword = document.getElementById('signupPassword');
+    const signupConfirmPassword = document.getElementById('signupConfirmPassword');
 
-if (signupPassword && signupConfirmPassword) {
-    const validateSignupPasswords = () => {
-        if (signupConfirmPassword.value === '') {
-            signupConfirmPassword.setCustomValidity('');
-            return;
-        }
+    if (signupPassword && signupConfirmPassword) {
+        const validateSignupPasswords = () => {
+            if (signupConfirmPassword.value === '') {
+                signupConfirmPassword.setCustomValidity('');
+                return;
+            }
         
         if (signupPassword.value !== signupConfirmPassword.value) {
             signupConfirmPassword.setCustomValidity('Passwords do not match');
@@ -708,122 +721,113 @@ if (signupPassword && signupConfirmPassword) {
     signupConfirmPassword.addEventListener('input', validateSignupPasswords);
 }
 
-// Handle signup form submission
-if (signupForm) {
-    signupForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const errorDiv = document.getElementById('signupError');
-        errorDiv.textContent = '';
-        errorDiv.style.display = 'none';
-        
-        const email = document.getElementById('signupEmail').value;
-        const username = document.getElementById('signupUsername').value;
-        const password = document.getElementById('signupPassword').value;
-        const confirmPassword = document.getElementById('signupConfirmPassword').value;
-        
-        if (password !== confirmPassword) {
-            errorDiv.textContent = 'Passwords do not match';
-            errorDiv.style.display = 'block';
-            return;
-        }
-        
-        try {
-            // Send signup request to backend
-            const response = await fetch('http://localhost:5000/api/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email: email,
-                    username: username,
-                    password: password,
-                    confirmPassword: confirmPassword
-                })
-            });
+    // Handle signup form submission
+    if (signupForm) {
+        signupForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            let result;
+            const errorDiv = document.getElementById('signupError');
+            errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+            
+            const firstName = document.getElementById('signupFirstName').value;
+            const lastName = document.getElementById('signupLastName').value;
+            const email = document.getElementById('signupEmail').value;
+            const phone = document.getElementById('signupPhone').value.replace(/\D/g, ''); // Strip dashes
+            const username = document.getElementById('signupUsername').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                errorDiv.textContent = 'Passwords do not match';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
             try {
-                result = await response.json();
-            } catch {
-                // Backend might not return JSON, use localStorage fallback
-                result = null;
+                console.log('Attempting signup...');
+                // Send signup request to backend
+                const response = await fetch('http://localhost:5000/api/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        firstName: firstName,
+                        lastName: lastName,
+                        email: email,
+                        phone: phone,
+                        username: username,
+                        password: password,
+                        confirmPassword: confirmPassword
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('Signup response:', result);
+                
+                if (response.ok && result.success) {
+                    // Store user and session token
+                    setCurrentUser(result.user, result.token);
+                    console.log('Signup successful, redirecting...');
+                    window.location.href = consumePostLoginRedirect();
+                } else {
+                    // Show error message from backend
+                    errorDiv.textContent = result.error || 'Signup failed. Please try again.';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Signup error:', error);
+                errorDiv.textContent = 'Unable to connect to server. Please ensure the server is running and PostgreSQL database is set up.';
+                errorDiv.style.display = 'block';
             }
-            
-            if (result && result.success) {
-                // Store user and session token
-                setCurrentUser(result.user, result.token);
-                window.location.href = consumePostLoginRedirect();
-            } else {
-                // Fallback: Create user in localStorage
-                const user = { email, username, id: 'user_' + Date.now() };
-                const token = 'token_' + Math.random().toString(36).substring(2, 15);
-                setCurrentUser(user, token);
-                window.location.href = consumePostLoginRedirect();
-            }
-        } catch (error) {
-            console.error('Signup error:', error);
-            // Fallback: Create user in localStorage anyway
-            const user = { email, username, id: 'user_' + Date.now() };
-            const token = 'token_' + Math.random().toString(36).substring(2, 15);
-            setCurrentUser(user, token);
-            window.location.href = consumePostLoginRedirect();
-        }
-    });
-}
+        });
+    }
 
-// Handle login form submission
-if (loginForm) {
-    loginForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const errorDiv = document.getElementById('loginError');
-        errorDiv.textContent = '';
-        errorDiv.style.display = 'none';
-        
-        const emailOrUsername = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        
-        try {
-            // Send login request to backend
-            const response = await fetch('http://localhost:5000/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    emailOrUsername: emailOrUsername,
-                    password: password
-                })
-            });
+    // Handle login form submission
+    if (loginForm) {
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            let result;
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+            
+            const emailOrUsername = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
             try {
-                result = await response.json();
-            } catch {
-                // Backend might not return JSON, use localStorage fallback
-                result = null;
+                console.log('Attempting login...');
+                // Send login request to backend
+                const response = await fetch('http://localhost:5000/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        emailOrUsername: emailOrUsername,
+                        password: password
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('Login response:', result);
+                
+                if (response.ok && result.success) {
+                    // Store user and session token
+                    setCurrentUser(result.user, result.token);
+                    console.log('Login successful, redirecting...');
+                    window.location.href = consumePostLoginRedirect();
+                } else {
+                    // Show error message from backend
+                    errorDiv.textContent = result.error || 'Login failed. Please check your credentials.';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorDiv.textContent = 'Unable to connect to server. Please ensure the server is running and PostgreSQL database is set up.';
+                errorDiv.style.display = 'block';
             }
-            
-            if (result && result.success) {
-                // Store user and session token
-                setCurrentUser(result.user, result.token);
-                window.location.href = consumePostLoginRedirect();
-            } else {
-                // Fallback: Create session in localStorage
-                const user = { email: emailOrUsername, username: emailOrUsername, id: 'user_' + Date.now() };
-                const token = 'token_' + Math.random().toString(36).substring(2, 15);
-                setCurrentUser(user, token);
-                window.location.href = consumePostLoginRedirect();
-            }
-        } catch (error) {
-            console.error('Login error:', error);
-            // Fallback: Create session in localStorage anyway
-            const user = { email: emailOrUsername, username: emailOrUsername, id: 'user_' + Date.now() };
-            const token = 'token_' + Math.random().toString(36).substring(2, 15);
-            setCurrentUser(user, token);
-            window.location.href = consumePostLoginRedirect();
-        }
-    });
-};
+        });
+    }
+}); // End of DOMContentLoaded for login/signup

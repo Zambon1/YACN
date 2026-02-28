@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Redirect - RentMatch</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 600px; 
+            margin: 100px auto; 
+            padding: 20px; 
+            text-align: center;
+        }
+        h1 { color: #d97757; }
+        .status { 
+            background: #f0f0f0; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin: 20px 0; 
+        }
+        button {
+            background: #d97757;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover { background: #c66647; }
+        #log {
+            background: #333;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 Test Login Redirect</h1>
+    
+    <div class="status">
+        <p><strong>Current Status:</strong></p>
+        <p id="loginStatus"></p>
+        <p id="tokenStatus"></p>
+    </div>
+    
+    <div>
+        <button onclick="clearAndTest()">Clear Storage & Test</button>
+        <button onclick="goToApplication()">Go to Application</button>
+        <button onclick="location.href='index.html'">Back to Home</button>
+    </div>
+    
+    <div id="log"></div>
+    
+    <script>
+        const log = document.getElementById('log');
+        
+        function addLog(message) {
+            const time = new Date().toLocaleTimeString();
+            log.innerHTML += `[${time}] ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+            console.log(message);
+        }
+        
+        function updateStatus() {
+            const token = localStorage.getItem('session_token');
+            const user = localStorage.getItem('rentmatch_user');
+            
+            document.getElementById('loginStatus').innerHTML = 
+                token ? '✅ Logged In' : '❌ Not Logged In';
+            document.getElementById('tokenStatus').innerHTML = 
+                token ? `Token: ${token.substring(0, 20)}...` : 'No token found';
+            
+            addLog('Status checked');
+            addLog(`Has token: ${!!token}`);
+            addLog(`Has user: ${!!user}`);
+        }
+        
+        function clearAndTest() {
+            addLog('Clearing localStorage...');
+            localStorage.clear();
+            sessionStorage.clear();
+            addLog('Storage cleared');
+            updateStatus();
+            
+            addLog('Waiting 1 second before redirect...');
+            setTimeout(() => {
+                addLog('Redirecting to application.html...');
+                addLog('This should redirect to login.html if auth check works');
+                window.location.href = 'application.html';
+            }, 1000);
+        }
+        
+        function goToApplication() {
+            addLog('Going directly to application.html...');
+            window.location.href = 'application.html';
+        }
+        
+        updateStatus();
+        addLog('Test page loaded');
+    </script>
+</body>
+</html>

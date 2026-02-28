@@ -1296,11 +1296,32 @@ body {
     gap: 1.25rem;
 }
 
+.auth-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.auth-form .form-row .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
 .auth-form .form-group {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
+
+.auth-form .form-group input,
+.auth-form .form-group select,
+.auth-form .form-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
+
 
 .auth-form .submit-button {
     margin-top: 0.5rem;

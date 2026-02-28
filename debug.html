@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug - RentMatch</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 50px auto; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        h1 { color: #d97757; }
+        .section { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin: 20px 0; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        pre { 
+            background: #333; 
+            color: #0f0; 
+            padding: 15px; 
+            border-radius: 5px; 
+            overflow-x: auto; 
+            font-size: 12px;
+        }
+        button {
+            background: #d97757;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover { background: #c66647; }
+        .test-result { 
+            padding: 10px; 
+            border-radius: 5px; 
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        a { color: #d97757; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Information</h1>
+    
+    <div class="section">
+        <h2>LocalStorage Contents:</h2>
+        <pre id="localStorage"></pre>
+        <button onclick="clearStorage()">Clear All Storage</button>
+        <button onclick="location.reload()">Refresh</button>
+    </div>
+    
+    <div class="section">
+        <h2>SessionStorage Contents:</h2>
+        <pre id="sessionStorage"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>Authentication Status:</h2>
+        <div id="authStatus"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Quick Tests:</h2>
+        <button onclick="testBackend()">Test Backend Connection</button>
+        <button onclick="testLogin()">Test Login Redirect</button>
+        <div id="testResults"></div>
+    </div>
+    
+    <p><a href="index.html">← Back to Home</a></p>
+    
+    <script src="script.js"></script>
+    <script>
+        function displayStorage() {
+            // LocalStorage
+            const localItems = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                localItems[key] = localStorage.getItem(key);
+            }
+            document.getElementById('localStorage').textContent = 
+                Object.keys(localItems).length > 0 
+                    ? JSON.stringify(localItems, null, 2) 
+                    : '(empty)';
+            
+            // SessionStorage
+            const sessionItems = {};
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                sessionItems[key] = sessionStorage.getItem(key);
+            }
+            document.getElementById('sessionStorage').textContent = 
+                Object.keys(sessionItems).length > 0 
+                    ? JSON.stringify(sessionItems, null, 2) 
+                    : '(empty)';
+            
+            // Auth status
+            const isLoggedIn = localStorage.getItem('session_token') !== null;
+            const user = getCurrentUser();
+            document.getElementById('authStatus').innerHTML = `
+                <p><strong>Logged In:</strong> ${isLoggedIn ? '✅ Yes' : '❌ No'}</p>
+                <p><strong>User Data:</strong> ${user ? JSON.stringify(user, null, 2) : 'None'}</p>
+                <p><strong>Session Token:</strong> ${localStorage.getItem('session_token') || 'None'}</p>
+            `;
+        }
+        
+        function clearStorage() {
+            if (confirm('Clear all localStorage and sessionStorage?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                alert('Storage cleared! Refreshing...');
+                location.reload();
+            }
+        }
+        
+        async function testBackend() {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<p>Testing backend connection...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/apartments');
+                if (response.ok) {
+                    const data = await response.json();
+                    results.innerHTML += `<div class="test-result success">✅ Backend is running! Found ${data.length} apartments.</div>`;
+                } else {
+                    results.innerHTML += `<div class="test-result error">❌ Backend returned status ${response.status}</div>`;
+                }
+            } catch (error) {
+                results.innerHTML += `<div class="test-result error">❌ Cannot connect to backend: ${error.message}</div>`;
+            }
+        }
+        
+        function testLogin() {
+            const results = document.getElementById('testResults');
+            const isLoggedIn = localStorage.getItem('session_token') !== null;
+            
+            results.innerHTML = `<p><strong>Testing Login Redirect...</strong></p>`;
+            results.innerHTML += `<p>Logged in status: ${isLoggedIn ? '✅ Yes' : '❌ No'}</p>`;
+            
+            if (isLoggedIn) {
+                results.innerHTML += `<div class="test-result error">❌ You are already logged in! Clear storage first to test login redirect.</div>`;
+            } else {
+                results.innerHTML += `<div class="test-result success">✅ Not logged in. Redirecting to application page (should redirect to login)...</div>`;
+                setTimeout(() => {
+                    window.location.href = 'application.html';
+                }, 1000);
+            }
+        }
+        
+        displayStorage();
+    </script>
+</body>
+</html>
