@@ -741,7 +741,7 @@
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="about.html">About</a></li>
-                <li><a href="application.html">Apply Now</a></li>
+                <li id="resultsApplyNowNavItem"><a href="application.html">Apply Now</a></li>
             </ul>
             <div class="user-profile"></div>
         </div>
@@ -751,7 +751,6 @@
         <div class="container">
             <h1>Your Apartment Matches</h1>
         </div>
-        <a href="index.html" class="back-button">← Home</a>
     </section>
 
     <div class="results-summary" id="resultsSummary">
@@ -829,6 +828,15 @@
     </footer>
 
     <script>
+        // Hide Apply Now nav item for logged-in users on results page
+        const hasSession = localStorage.getItem('session_token') !== null;
+        if (hasSession) {
+            const applyNowNavItem = document.getElementById('resultsApplyNowNavItem');
+            if (applyNowNavItem) {
+                applyNowNavItem.remove();
+            }
+        }
+
         // Load results from sessionStorage
         const resultsData = JSON.parse(sessionStorage.getItem('matchResults'));
         let allMatches = [];
