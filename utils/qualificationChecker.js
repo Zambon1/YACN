@@ -1,15 +1,23 @@
 /**
  * Convert credit score range to numeric value for comparison
  */
-export function convertCreditScoreToNumeric(creditScoreRange) {
-    const scoreMap = {
-        "excellent": 775,
-        "good": 725,
-        "fair": 675,
-        "poor": 625,
-        "very-poor": 575
-    };
-    return scoreMap[creditScoreRange] || 600;
+export function convertCreditScoreToRating(creditScore) {
+    const creditScoreRating = 'very poor';
+    if (creditScore < 560) {
+        return creditScoreRating;
+    } else if (creditScore < 650) {
+        creditScoreRating = 'poor';
+        return creditScoreRating;
+    } else if (creditScore < 700) {
+        creditScoreRating = 'fair';
+        return creditScoreRating;
+    } else if (creditScore < 750) {
+        creditScoreRating = 'good';
+        return creditScoreRating;
+    } else {
+        creditScoreRating = 'excellent';
+        return creditScoreRating;
+    }
 }
 
 /**
@@ -23,7 +31,6 @@ export function checkQualification(applicant, apartment) {
     
     // 1. Check income requirement (typically 3x rent)
     const monthlyIncome = parseFloat(applicant.monthlyIncome || 0);
-    const additionalIncome = parseFloat(applicant.additionalIncome || 0);
     const totalIncome = monthlyIncome + additionalIncome;
     const requiredIncome = apartment.rent * apartment.min_income_multiplier;
     
