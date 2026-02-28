@@ -1,0 +1,2 @@
+ALTER TABLE users
+ADD user_role VARCHAR(255) CHECK (user_role IN ('owner', 'manager', 'renter'));
