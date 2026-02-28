@@ -93,10 +93,42 @@ body {
 
 /* Hero Section */
 .hero {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background-color: var(--primary-dark);
     color: white;
     padding: 80px 20px;
     text-align: center;
+}
+
+.hero::before,
+.hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+}
+
+.hero::before {
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0.38)),
+        url('https://images.unsplash.com/photo-1560185007-5f0bb1866cab?w=1600&auto=format&fit=crop');
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.hero::after {
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0.38)),
+        url('https://images.unsplash.com/photo-1460317442991-0ec209397118?w=1600&auto=format&fit=crop');
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+.hero .container {
+    position: relative;
+    z-index: 1;
 }
 
 .hero-content h1 {
