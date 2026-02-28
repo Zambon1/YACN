@@ -828,7 +828,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 errorDiv.textContent = 'Unable to connect to server. Please ensure the server is running and PostgreSQL database is set up.';
                 errorDiv.style.display = 'block';
             }
+<<<<<<< HEAD
         });
     }
 }); // End of DOMContentLoaded for login/signup
 
+=======
+            
+            if (result && result.success) {
+                // Store user and session token
+                setCurrentUser(result.user, result.token);
+                window.location.href = consumePostLoginRedirect();
+            } else {
+                // Fallback: Create session in localStorage
+                const user = { email: emailOrUsername, username: emailOrUsername, id: 'user_' + Date.now() };
+                const token = 'token_' + Math.random().toString(36).substring(2, 15);
+                setCurrentUser(user, token);
+                window.location.href = consumePostLoginRedirect();
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            // Fallback: Create session in localStorage anyway
+            const user = { email: emailOrUsername, username: emailOrUsername, id: 'user_' + Date.now() };
+            const token = 'token_' + Math.random().toString(36).substring(2, 15);
+            setCurrentUser(user, token);
+            window.location.href = consumePostLoginRedirect();
+        }
+    });
+};
+>>>>>>> fb9d244fcc36093e8aacbe9abfef85571c531783
