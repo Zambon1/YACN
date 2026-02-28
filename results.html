@@ -595,6 +595,48 @@
             color: white;
         }
 
+        .results-message {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 16px;
+            max-width: 500px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            border: 1px solid black;
+            font-weight: 600;
+            display: none;
+            z-index: 10000;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .results-message.info {
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        .results-message.success {
+            background: #ecfdf5;
+            color: #166534;
+        }
+
+        .results-message.error {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
         .matches-container.grid-view {
             max-width: 1200px;
             margin: 0 auto;
@@ -811,7 +853,11 @@
     <div class="view-toggle">
         <button class="toggle-button active" onclick="switchView('grid')" id="gridViewBtn">🔲 Grid View</button>
         <button class="toggle-button" onclick="switchView('list')" id="listViewBtn">📋 List View</button>
+        <button class="toggle-button" onclick="showAppliedList()" id="appliedViewBtn">✅ Applied (0)</button>
+        <button class="toggle-button" onclick="showSavedList()" id="savedViewBtn">💾 Saved (0)</button>
     </div>
+
+    <div id="resultsActionMessage" class="results-message info" role="status" aria-live="polite"></div>
 
     <div class="matches-container grid-view" id="matchesContainer" style="display: block;">
         <!-- List view populated by JavaScript -->
@@ -840,6 +886,142 @@
         // Load results from sessionStorage
         const resultsData = JSON.parse(sessionStorage.getItem('matchResults'));
         let allMatches = [];
+        let savedMatches = [];
+        let appliedMatches = [];
+        let showingSavedList = false;
+        let showingAppliedList = false;
+        let currentResultsMatches = [];
+        let currentViewMode = 'grid';
+        let messageTimeoutId = null;
+
+        function showResultsMessage(message, type = 'info') {
+            const messageBox = document.getElementById('resultsActionMessage');
+            if (!messageBox) return;
+
+            messageBox.textContent = message;
+            messageBox.className = `results-message ${type}`;
+            messageBox.style.display = 'block';
+
+            if (messageTimeoutId) {
+                clearTimeout(messageTimeoutId);
+            }
+
+            messageTimeoutId = setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 4000);
+        }
+
+        function getSavedStorageKey() {
+            try {
+                const user = JSON.parse(localStorage.getItem('rentmatch_user') || 'null');
+                if (user) {
+                    return `saved_properties_${user.id || user.email}`;
+                }
+            } catch (error) {
+                console.error('Error reading user for saved properties:', error);
+            }
+            return 'saved_properties_guest';
+        }
+
+        function loadSavedMatches() {
+            try {
+                const rawSaved = localStorage.getItem(getSavedStorageKey());
+                const parsedSaved = rawSaved ? JSON.parse(rawSaved) : [];
+                savedMatches = Array.isArray(parsedSaved) ? parsedSaved : [];
+            } catch (error) {
+                console.error('Error loading saved properties:', error);
+                savedMatches = [];
+            }
+            updateSavedButtonLabel();
+        }
+
+        function persistSavedMatches() {
+            localStorage.setItem(getSavedStorageKey(), JSON.stringify(savedMatches));
+            updateSavedButtonLabel();
+        }
+
+        function updateSavedButtonLabel() {
+            const savedBtn = document.getElementById('savedViewBtn');
+            if (savedBtn) {
+                savedBtn.textContent = `💾 Saved (${savedMatches.length})`;
+            }
+        }
+
+        function setSavedButtonActive(active) {
+            const savedBtn = document.getElementById('savedViewBtn');
+            if (!savedBtn) return;
+
+            if (active) {
+                savedBtn.classList.add('active');
+            } else {
+                savedBtn.classList.remove('active');
+            }
+        }
+
+        function getAppliedStorageKey() {
+            try {
+                const user = JSON.parse(localStorage.getItem('rentmatch_user') || 'null');
+                if (user) {
+                    return `applied_properties_${user.id || user.email}`;
+                }
+            } catch (error) {
+                console.error('Error reading user for applied properties:', error);
+            }
+            return 'applied_properties_guest';
+        }
+
+        function loadAppliedMatches() {
+            try {
+                const rawApplied = localStorage.getItem(getAppliedStorageKey());
+                const parsedApplied = rawApplied ? JSON.parse(rawApplied) : [];
+                appliedMatches = Array.isArray(parsedApplied) ? parsedApplied : [];
+            } catch (error) {
+                console.error('Error loading applied properties:', error);
+                appliedMatches = [];
+            }
+            updateAppliedButtonLabel();
+        }
+
+        function persistAppliedMatches() {
+            localStorage.setItem(getAppliedStorageKey(), JSON.stringify(appliedMatches));
+            updateAppliedButtonLabel();
+        }
+
+        function updateAppliedButtonLabel() {
+            const appliedBtn = document.getElementById('appliedViewBtn');
+            if (appliedBtn) {
+                appliedBtn.textContent = `✅ Applied (${appliedMatches.length})`;
+            }
+        }
+
+        function setAppliedButtonActive(active) {
+            const appliedBtn = document.getElementById('appliedViewBtn');
+            if (!appliedBtn) return;
+
+            if (active) {
+                appliedBtn.classList.add('active');
+            } else {
+                appliedBtn.classList.remove('active');
+            }
+        }
+
+        function setActiveViewButton(mode) {
+            const gridBtn = document.getElementById('gridViewBtn');
+            const listBtn = document.getElementById('listViewBtn');
+
+            if (gridBtn) {
+                gridBtn.classList.toggle('active', mode === 'grid');
+            }
+            if (listBtn) {
+                listBtn.classList.toggle('active', mode === 'list');
+            }
+
+            setAppliedButtonActive(mode === 'applied');
+            setSavedButtonActive(mode === 'saved');
+        }
+
+        loadSavedMatches();
+        loadAppliedMatches();
 
         if (!resultsData) {
             window.location.href = 'index.html';
@@ -978,15 +1160,23 @@
             }
         }
 
-        function renderMatches(matches) {
+        function renderMatches(matches, isSavedView = false, isAppliedView = false) {
             const matchesDiv = document.getElementById('matchesContainer');
+            showingSavedList = isSavedView;
+            showingAppliedList = isAppliedView;
+
+            if (!isSavedView && !isAppliedView) {
+                currentResultsMatches = matches;
+            }
+
+            setActiveViewButton(isAppliedView ? 'applied' : isSavedView ? 'saved' : currentViewMode);
             
             if (matches.length === 0) {
                 matchesDiv.innerHTML = `
                     <div class="no-matches">
-                        <h2>No Results Match Your Filters</h2>
-                        <p>Try adjusting your filter criteria.</p>
-                        <button class="cta-button" onclick="clearFilters()">Clear Filters</button>
+                        <h2>${isAppliedView ? 'No Applications Yet' : isSavedView ? 'No Saved Properties Yet' : 'No Results Match Your Filters'}</h2>
+                        <p>${isAppliedView ? 'Click Send Application on a property to add it here.' : isSavedView ? 'Click Save for Later on a property to add it here.' : 'Try adjusting your filter criteria.'}</p>
+                        ${isSavedView || isAppliedView ? '' : '<button class="cta-button" onclick="clearFilters()">Clear Filters</button>'}
                     </div>
                 `;
                 return;
@@ -1055,12 +1245,28 @@
                                     ` : ''}
 
                                     <div class="apartment-actions">
-                                        <button class="action-button primary-action" onclick="contactProperty('${apartment.name}')">
-                                            Contact Property
-                                        </button>
-                                        <button class="action-button secondary-action" onclick="saveForLater('${apartment.name}')">
-                                            Save for Later
-                                        </button>
+                                        ${isAppliedView ? `
+                                            <button class="action-button primary-action" onclick="checkApplication('${apartment.name}')">
+                                                Check Application
+                                            </button>
+                                        ` : `
+                                            <button class="action-button primary-action" onclick="sendApplication('${apartment.name}')">
+                                                Send Application
+                                            </button>
+                                        `}
+                                        ${isAppliedView ? `
+                                            <button class="action-button secondary-action" onclick="removeFromApplied('${apartment.name}')">
+                                                Remove Application
+                                            </button>
+                                        ` : isSavedView ? `
+                                            <button class="action-button secondary-action" onclick="removeFromSaved('${apartment.name}')">
+                                                Remove from Saved
+                                            </button>
+                                        ` : `
+                                            <button class="action-button secondary-action" onclick="saveForLater('${apartment.name}')">
+                                                Save for Later
+                                            </button>
+                                        `}
                                     </div>
                                 </div>
                             </div>
@@ -1115,12 +1321,86 @@
             renderMatches(allMatches);
         }
 
-        function contactProperty(name) {
-            alert(`Contact feature coming soon for ${name}!\n\nIn production, this would:\n- Send your pre-filled application\n- Schedule a tour\n- Connect you with the leasing office`);
+        function showSavedList() {
+            renderMatches(savedMatches, true, false);
+        }
+
+        function showAppliedList() {
+            renderMatches(appliedMatches, false, true);
+        }
+
+        function sendApplication(name) {
+            const property = allMatches.find(apartment => apartment.name === name);
+            if (!property) {
+                showResultsMessage('Unable to apply to property. Please try again.', 'error');
+                return;
+            }
+
+            const alreadyApplied = appliedMatches.some(apartment => apartment.name === name);
+            if (alreadyApplied) {
+                showResultsMessage(`You have already applied to ${name}.`, 'info');
+                return;
+            }
+
+            appliedMatches.push(property);
+            persistAppliedMatches();
+            showResultsMessage(`Applied to ${name}!`, 'success');
+
+            if (showingAppliedList) {
+                renderMatches(appliedMatches, false, true);
+            }
         }
 
         function saveForLater(name) {
-            alert(`Saved ${name} to your favorites!\n\nIn production, this would save to your account.`);
+            const property = allMatches.find(apartment => apartment.name === name);
+            if (!property) {
+                showResultsMessage('Unable to save property. Please try again.', 'error');
+                return;
+            }
+
+            const alreadySaved = savedMatches.some(apartment => apartment.name === name);
+            if (alreadySaved) {
+                showResultsMessage(`${name} is already in your saved list.`, 'info');
+                return;
+            }
+
+            savedMatches.push(property);
+            persistSavedMatches();
+            showResultsMessage(`Saved ${name} to your saved list.`, 'success');
+
+            if (showingSavedList) {
+                renderMatches(savedMatches, true);
+            }
+        }
+
+        function removeFromSaved(name) {
+            const index = savedMatches.findIndex(apartment => apartment.name === name);
+            if (index === -1) {
+                showResultsMessage('Unable to remove property. Please try again.', 'error');
+                return;
+            }
+
+            savedMatches.splice(index, 1);
+            persistSavedMatches();
+            showResultsMessage(`Removed ${name} from your saved list.`, 'success');
+            renderMatches(savedMatches, true, false);
+        }
+
+        function removeFromApplied(name) {
+            const index = appliedMatches.findIndex(apartment => apartment.name === name);
+            if (index === -1) {
+                showResultsMessage('Unable to remove application. Please try again.', 'error');
+                return;
+            }
+
+            appliedMatches.splice(index, 1);
+            persistAppliedMatches();
+            showResultsMessage(`Removed application to ${name}.`, 'success');
+            renderMatches(appliedMatches, false, true);
+        }
+
+        function checkApplication(name) {
+            showResultsMessage(`Your application for ${name} has been received. They will reach out to you with further information regarding a lease.`, 'info');
         }
 
         function editApplication() {
@@ -1131,19 +1411,21 @@
 
         function switchView(view) {
             const matchesView = document.getElementById('matchesContainer');
-            const gridBtn = document.getElementById('gridViewBtn');
-            const listBtn = document.getElementById('listViewBtn');
+            currentViewMode = view;
 
             if (view === 'grid') {
                 matchesView.classList.add('grid-view');
                 matchesView.classList.remove('list-view');
-                gridBtn.classList.add('active');
-                listBtn.classList.remove('active');
             } else {
                 matchesView.classList.add('list-view');
                 matchesView.classList.remove('grid-view');
-                gridBtn.classList.remove('active');
-                listBtn.classList.add('active');
+            }
+
+            if (showingSavedList || showingAppliedList) {
+                renderMatches(currentResultsMatches, false, false);
+            } else {
+                setActiveViewButton(view);
+                renderMatches(currentResultsMatches, false, false);
             }
         }
     </script>
