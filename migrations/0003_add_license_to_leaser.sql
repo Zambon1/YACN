@@ -1,1 +1,2 @@
 ALTER TABLE leaser ADD license_number INT NOT NULL;
+ALTER TABLE leaser ADD username VARCHAR(255) UNIQUE NOT NULL;
