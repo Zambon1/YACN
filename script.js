@@ -350,6 +350,7 @@ if (applicationForm) {
         const formData = new FormData(this);
         const data = {};
         
+        //TODO: convert this to use SQL 
         formData.forEach((value, key) => {
             data[key] = value;
         });
