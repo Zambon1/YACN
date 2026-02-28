@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
     "express": "^4.22.1",
     "express-handlebars": "^8.0.6",
     "nodemon": "^3.1.14"

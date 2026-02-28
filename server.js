@@ -4,12 +4,20 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import indexRoutes from './routes/index.js';
 import apiRoutes from './routes/api.js';
+import dotenv from 'dotenv';
+import { engine } from 'express-handlebars';
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 5000;
+
+app.engine("handlebars", engine());
+app.set("view engine", "handlebars");
+app.set("views", "./views");
 
 // Middleware
 app.use(cors());
