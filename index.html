@@ -13,7 +13,7 @@
         </div>
     </div>
     <nav class="navbar">
-        <div class="container">
+        <div class="container navbar-content">
             <ul class="nav-links">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#about-service">About</a></li>
@@ -21,6 +21,7 @@
                 <li><a href="#testimonials">Testimonials</a></li>
                 <li><a href="application.html">Apply Now</a></li>
             </ul>
+            <div class="user-profile"></div>
         </div>
     </nav>
 
@@ -41,6 +42,7 @@
             <div class="branch-visualization">
                 <!-- Person Silhouette -->
                 <div class="person-silhouette">
+                    <div class="silhouette-tooltip">Click to Begin</div>
                     <div class="person-icon">
                         <svg viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg">
                             <!-- Head -->
@@ -48,8 +50,8 @@
                             <!-- Body -->
                             <rect x="35" y="50" width="30" height="50" rx="5" fill="var(--primary-color)"/>
                             <!-- Arms -->
-                            <rect x="5" y="55" width="35" height="12" rx="6" fill="var(--primary-color)" transform="rotate(-20 22 61)"/>
-                            <rect x="60" y="55" width="35" height="12" rx="6" fill="var(--primary-color)" transform="rotate(20 78 61)"/>
+                            <rect x="25" y="58" width="10" height="52" rx="5" fill="var(--primary-color)"/>
+                            <rect x="65" y="58" width="10" height="52" rx="5" fill="var(--primary-color)"/>
                             <!-- Legs -->
                             <rect x="38" y="95" width="12" height="55" rx="6" fill="var(--primary-color)"/>
                             <rect x="50" y="95" width="12" height="55" rx="6" fill="var(--primary-color)"/>
@@ -61,10 +63,10 @@
                 <!-- SVG Lines Container -->
                 <svg class="branch-lines" viewBox="0 0 1000 760" preserveAspectRatio="xMidYMid meet">
                     <!-- Lines from person to apartments -->
-                    <line x1="500" y1="520" x2="230" y2="220" class="branch-line line-1" />
-                    <line x1="500" y1="520" x2="410" y2="160" class="branch-line line-2" />
-                    <line x1="500" y1="520" x2="620" y2="160" class="branch-line line-3" />
-                    <line x1="500" y1="520" x2="790" y2="220" class="branch-line line-4" />
+                    <line x1="500" y1="520" x2="230" y2="220" class="branch-line line-1" data-node="0" />
+                    <line x1="500" y1="520" x2="410" y2="160" class="branch-line line-2" data-node="1" />
+                    <line x1="500" y1="520" x2="620" y2="160" class="branch-line line-3" data-node="2" />
+                    <line x1="500" y1="520" x2="790" y2="220" class="branch-line line-4" data-node="3" />
                 </svg>
 
                 <!-- Apartment Options -->

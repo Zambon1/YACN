@@ -1,8 +1,15 @@
 import express from 'express';
 import { submitApplication } from '../controllers/applicationController.js';
 import { getAllApartments, getApartmentById } from '../controllers/apartmentController.js';
+import { signup, login, getCurrentUser, logout } from '../controllers/authController.js';
 
 const router = express.Router();
+
+// Auth routes
+router.post('/signup', signup);
+router.post('/login', login);
+router.get('/user', getCurrentUser);
+router.post('/logout', logout);
 
 // Application routes
 router.post('/submit-application', submitApplication);
