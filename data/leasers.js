@@ -3,12 +3,12 @@ import db from '../utils/db.js';
 
 export async function createLeaser(leaserData) {
     try {
-        const { first_name, last_name, company, phone, email } = leaserData;
+        const { first_name, last_name, company, phone, email, license_number, user_id } = leaserData;
         const result = await db.query(`
-            INSERT INTO leaser (first_name, last_name, company, phone, email)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO leaser (first_name, last_name, company, phone, email, license_number, user_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
-        `, [first_name, last_name, company, phone, email]);
+        `, [first_name, last_name, company, phone, email, license_number || null, user_id || null]);
         return result.rows[0];
     } catch (error) {
         console.error('Error creating leaser:', error);
@@ -101,6 +101,15 @@ export async function deleteLeaser(id) {
         return result.rows.length > 0;
     } catch (error) {
         console.error('Error deleting leaser:', error);
+        throw error;
+    }
+}
+export async function getLeaserByUserId(userId) {
+    try {
+        const result = await db.query('SELECT * FROM leaser WHERE user_id = $1', [userId]);
+        return result.rows[0] || null;
+    } catch (error) {
+        console.error('Error fetching leaser by user ID:', error);
         throw error;
     }
 }

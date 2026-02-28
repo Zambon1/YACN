@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Become a Landlord Partner - RentMatch</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="login-page">
+    <div class="top-banner">
+        <div class="container">
+            <h1>🏠 RentMatch - Landlord Partners</h1>
+        </div>
+    </div>
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="login.html">Renter Login</a></li>
+            </ul>
+            <div class="user-profile"></div>
+        </div>
+    </nav>
+
+    <section class="login-section">
+        <div class="container">
+            <div class="auth-container">
+                <!-- Landlord Signup Form -->
+                <div class="auth-card" id="landlordSignupCard">
+                    <h2>Join as a Landlord Partner</h2>
+                    <p class="section-subtitle">Manage your properties and connect with qualified renters</p>
+                    
+                    <form id="landlordSignupForm" class="auth-form">
+                        <!-- Personal Information -->
+                        <h3 style="margin-top: 1.5rem; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-dark);">Personal Information</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="firstName">First Name *</label>
+                                <input type="text" id="firstName" name="firstName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName">Last Name *</label>
+                                <input type="text" id="lastName" name="lastName" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="landlordEmail">Email Address *</label>
+                            <input type="email" id="landlordEmail" name="landlordEmail" required>
+                            <div class="field-status" id="emailStatus"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="landlordPhone">Phone Number *</label>
+                            <input type="tel" id="landlordPhone" name="landlordPhone" pattern="[0-9\-]{12,14}" placeholder="555-123-4567" required>
+                            <small class="field-hint">Enter 10 digits (auto-formatted)</small>
+                        </div>
+
+                        <!-- Company Information -->
+                        <h3 style="margin-top: 1.5rem; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-dark);">Company Information</h3>
+
+                        <div class="form-group">
+                            <label for="companyName">Company/Organization Name *</label>
+                            <input type="text" id="companyName" name="companyName" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="licenseNumber">License Number (Optional)</label>
+                            <input type="text" id="licenseNumber" name="licenseNumber">
+                            <small class="field-hint">Real Estate License or Property Management License</small>
+                        </div>
+
+                        <!-- Account Information -->
+                        <h3 style="margin-top: 1.5rem; margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-dark);">Account Information</h3>
+
+                        <div class="form-group">
+                            <label for="landlordUsername">Username *</label>
+                            <input type="text" id="landlordUsername" name="landlordUsername" minlength="4" maxlength="20" required>
+                            <small class="field-hint">Username must be 4-20 characters</small>
+                            <div class="field-status" id="usernameStatus"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="landlordPassword">Password *</label>
+                            <input type="password" id="landlordPassword" name="landlordPassword" minlength="8" required>
+                            <small class="field-hint">Password must be at least 8 characters</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="landlordConfirmPassword">Confirm Password *</label>
+                            <input type="password" id="landlordConfirmPassword" name="landlordConfirmPassword" minlength="8" required>
+                        </div>
+
+                        <div class="error-message" id="signupError"></div>
+                        <button type="submit" class="submit-button">Create Landlord Account</button>
+                    </form>
+
+                    <p class="auth-switch">
+                        Already have an account?
+                        <a href="login.html" id="toLogin">Log In Here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 RentMatch. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="landlord.js"></script>
+</body>
+</html>

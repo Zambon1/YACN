@@ -12,6 +12,13 @@ import {
     checkApplicantMeetsRequirements,
     getAllRequirements
 } from '../controllers/requirementsController.js';
+import {
+    landlordSignup,
+    getLandlordProfile,
+    createLandlordComplex,
+    updateLandlordComplex,
+    deleteLandlordComplex
+} from '../controllers/landlordController.js';
 
 const router = express.Router();
 
@@ -52,5 +59,12 @@ router.get('/requirements/:complexId', getRequirements);
 router.put('/requirements/:complexId', updateRequirements);
 router.delete('/requirements/:complexId', deleteRequirements);
 router.post('/requirements/:complexId/check', checkApplicantMeetsRequirements);
+
+// Landlord routes
+router.post('/landlord/signup', landlordSignup);
+router.get('/landlord/profile', getLandlordProfile);
+router.post('/landlord/complex', createLandlordComplex);
+router.put('/landlord/complex/:complexId', updateLandlordComplex);
+router.delete('/landlord/complex/:complexId', deleteLandlordComplex);
 
 export default router;
