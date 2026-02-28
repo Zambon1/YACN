@@ -743,8 +743,9 @@ body {
 }
 
 .testimonials {
-    padding: 80px 20px;
-    background-color: var(--bg-light);
+    padding: 40px 20px 80px 20px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    border-top: 1px solid black;
 }
 
 .testimonials h2 {
