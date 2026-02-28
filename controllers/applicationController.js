@@ -1,7 +1,44 @@
-import { APARTMENTS } from '../data/apartments.js';
+import db from '../utils/db.js';
 import { createApplicationRecord, getApplicationByUserId, getApplicationByEmail, getApplicantSubmissionData, compareApplicantToRequirements } from '../data/applications.js';
 import { getSession } from '../data/sessions.js';
 import { checkQualification, calculateMatchScore } from '../utils/qualificationChecker.js';
+
+/**
+ * Get all apartments from database
+ */
+async function getAllApartmentsFromDB() {
+    const query = `
+        SELECT 
+            c.id,
+            c.name,
+            c.street as address,
+            c.city,
+            c.us_state as state,
+            u.bedroom as bedrooms,
+            u.bathroom as bathrooms,
+            u.price as rent,
+            u.deposit,
+            c.min_credit_score,
+            c.min_income_multiplier,
+            c.pets_allowed,
+            c.pet_types,
+            c.max_pets,
+            c.pet_deposit,
+            c.smoking_allowed,
+            c.accepts_evictions,
+            c.accepts_bankruptcies,
+            c.accepts_criminal_record,
+            c.amenities,
+            c.image
+        FROM complex c
+        JOIN unit u ON c.id = u.complex_id
+        WHERE c.name IS NOT NULL
+        ORDER BY c.id
+    `;
+    
+    const result = await db.query(query);
+    return result.rows;
+}
 
 /**
  * Check if user has submitted an application
@@ -48,11 +85,14 @@ export const submitApplication = async (req, res) => {
         const token = req.headers.authorization?.replace('Bearer ', '');
         const session = token ? await getSession(token) : null;
 
+        // Get all apartments from database
+        const apartments = await getAllApartmentsFromDB();
+
         // Find matching apartments and collect rejection reasons
         const matches = [];
         const rejectionReasonCounts = {};
 
-        for (const apartment of APARTMENTS) {
+        for (const apartment of apartments) {
             const { qualified, reasons } = checkQualification(applicantData, apartment);
 
             if (qualified) {

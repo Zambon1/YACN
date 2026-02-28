@@ -25,6 +25,13 @@ export function convertCreditScoreToNumeric(creditScore) {
         return creditScore;
     }
     
+    // Try to parse as number first
+    const numericScore = parseInt(creditScore);
+    if (!isNaN(numericScore) && numericScore >= 300 && numericScore <= 850) {
+        return numericScore;
+    }
+    
+    // Otherwise, treat as a rating string
     switch (creditScore) {
         case 'very-poor':
         case 'very poor':
@@ -38,7 +45,7 @@ export function convertCreditScoreToNumeric(creditScore) {
         case 'excellent':
             return 750;
         default:
-            return 560; // Treat unknown as fair
+            return 560; // Treat unknown as poor
     }
 }
 

@@ -82,6 +82,16 @@ export async function findUserByUsername(username) {
     }
 }
 
+export async function findUserByPhone(phone) {
+    try {
+        const result = await db.query('SELECT * FROM users WHERE phone = $1', [phone]);
+        return result.rows[0] || null;
+    } catch (error) {
+        console.error('Error finding user by phone:', error);
+        throw error;
+    }
+}
+
 export async function findUserById(id) {
     try {
         const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);

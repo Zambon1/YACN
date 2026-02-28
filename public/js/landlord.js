@@ -29,7 +29,7 @@ function logout() {
     
     localStorage.removeItem('rentmatch_user');
     localStorage.removeItem('session_token');
-    window.location.href = 'landlord-signup.html';
+    window.location.href = 'landlord-login.html';
 }
 
 // ============ Format Phone Number ============
@@ -76,7 +76,7 @@ async function loadProfile() {
     try {
         const token = localStorage.getItem('session_token');
         if (!token) {
-            window.location.href = 'landlord-signup.html';
+            window.location.href = 'landlord-login.html';
             return;
         }
         
@@ -597,7 +597,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (dashboardContent) {
         // Check if logged in
         if (!isLoggedIn()) {
-            window.location.href = 'landlord-signup.html';
+            window.location.href = 'landlord-login.html';
             return;
         }
         

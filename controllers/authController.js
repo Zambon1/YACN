@@ -1,4 +1,4 @@
-import { findUserByEmail, findUserByUsername, createUser, getUserPublic, findUserById } from '../data/users.js';
+import { findUserByEmail, findUserByUsername, findUserByPhone, createUser, getUserPublic, findUserById } from '../data/users.js';
 import { createSession, destroySession, getSession } from '../data/sessions.js';
 
 export async function signup(req, res) {
@@ -55,6 +55,17 @@ export async function signup(req, res) {
             });
         }
 
+        // Check for duplicate phone number
+        const existingPhone = await findUserByPhone(phone);
+        if (existingPhone) {
+            return res.status(409).json({
+                success: false,
+                error: `Phone number already registered: ${phone}`,
+                errorType: 'PHONE_EXISTS',
+                field: 'phone'
+            });
+        }
+
         const newUser = await createUser(firstName, lastName, username, email, phone, password);
         const token = await createSession(newUser.id);
 
@@ -66,6 +77,34 @@ export async function signup(req, res) {
         });
     } catch (error) {
         console.error('Signup error:', error);
+        
+        // Handle specific database errors
+        if (error.code === '23505') {
+            // Unique constraint violation
+            if (error.constraint === 'users_email_key') {
+                return res.status(409).json({
+                    success: false,
+                    error: 'Email address is already registered',
+                    errorType: 'EMAIL_EXISTS',
+                    field: 'email'
+                });
+            } else if (error.constraint === 'users_username_key') {
+                return res.status(409).json({
+                    success: false,
+                    error: 'Username is already taken',
+                    errorType: 'USERNAME_EXISTS',
+                    field: 'username'
+                });
+            } else if (error.constraint === 'users_phone_key') {
+                return res.status(409).json({
+                    success: false,
+                    error: 'Phone number is already registered',
+                    errorType: 'PHONE_EXISTS',
+                    field: 'phone'
+                });
+            }
+        }
+        
         res.status(500).json({
             success: false,
             error: 'Error creating account'
