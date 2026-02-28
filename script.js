@@ -563,8 +563,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Handle editing an application
 if (window.location.pathname.endsWith('application.html') && sessionStorage.getItem('editingApplication') === 'true') {
-    sessionStorage.removeItem('editingApplication');
-    
     document.addEventListener('DOMContentLoaded', function() {
         // Update button text to reflect editing
         const form = document.getElementById('applicationForm');
@@ -607,6 +605,10 @@ if (window.location.pathname.endsWith('application.html') && sessionStorage.getI
                     // Scroll to notice
                     messageDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
+
+                // Clear edit flag only after page has loaded in edit mode,
+                // so auth checks on DOMContentLoaded don't redirect immediately.
+                sessionStorage.removeItem('editingApplication');
             }, 100);
         }
     });
