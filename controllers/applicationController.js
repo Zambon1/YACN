@@ -1,5 +1,5 @@
 import { APARTMENTS } from '../data/apartments.js';
-import { createApplicationRecord, getApplicationByUserId, getApplicationByEmail } from '../data/applications.js';
+import { createApplicationRecord, getApplicationByUserId, getApplicationByEmail, getApplicantSubmissionData, compareApplicantToRequirements } from '../data/applications.js';
 import { getSession } from '../data/sessions.js';
 import { checkQualification, calculateMatchScore } from '../utils/qualificationChecker.js';
 
@@ -102,6 +102,74 @@ export const submitApplication = async (req, res) => {
 
     } catch (error) {
         console.error('submitApplication error:', error);
+        res.status(400).json({
+            success: false,
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Get applicant submission data for an application
+ * GET /api/application/:applicationId/submission
+ */
+export const getApplicationSubmission = async (req, res) => {
+    try {
+        const { applicationId } = req.params;
+
+        if (!applicationId) {
+            return res.status(400).json({
+                success: false,
+                error: 'applicationId is required'
+            });
+        }
+
+        const submissionData = await getApplicantSubmissionData(applicationId);
+        if (!submissionData) {
+            return res.status(404).json({
+                success: false,
+                error: 'Application not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Applicant submission data retrieved',
+            data: submissionData
+        });
+    } catch (error) {
+        console.error('getApplicationSubmission error:', error);
+        res.status(400).json({
+            success: false,
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Compare applicant submission against complex requirements
+ * POST /api/application/:applicationId/compare/:complexId
+ */
+export const compareApplicationToRequirements = async (req, res) => {
+    try {
+        const { applicationId, complexId } = req.params;
+
+        if (!applicationId || !complexId) {
+            return res.status(400).json({
+                success: false,
+                error: 'applicationId and complexId are required'
+            });
+        }
+
+        const comparisonResult = await compareApplicantToRequirements(applicationId, complexId);
+
+        res.json({
+            success: true,
+            message: 'Applicant compared against requirements',
+            data: comparisonResult
+        });
+    } catch (error) {
+        console.error('compareApplicationToRequirements error:', error);
         res.status(400).json({
             success: false,
             error: error.message

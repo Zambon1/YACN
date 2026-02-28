@@ -1,4 +1,15 @@
 // Applications database - PostgreSQL backend
+// APPLICANT SUBMISSIONS: This file stores what APPLICANTS SUBMIT (their actual data)
+// SYMMETRICAL WITH requirements.js which stores what LANDLORDS REQUIRE (criteria)
+//
+// Both store the same types of information:
+//   - name, employment status, monthly income, credit score, pets, children, evictions, criminal record
+//   - But applications.js = ACTUAL VALUES from applicants
+//   - And requirements.js = CRITERIA set by landlords
+//
+// Example:
+//   - applicant submits: monthly_income = $5000, credit_score = 'good', pets = 2
+//   - landlord requires: min_monthly_income_ratio = 3.0, credit_score_min = 'fair', pets = 1
 import db from '../utils/db.js';
 
 export async function createApplicationRecord(payload) {
@@ -107,6 +118,8 @@ export async function getApplicationByEmail(email) {
 }
 
 // Enhanced application creation with detailed fields
+// This stores APPLICANT SUBMITTED DATA - what the renter provides
+// Symmetrical fields with requirements.js but stores ACTUAL VALUES not CRITERIA
 export async function createDetailedApplication(applicationData) {
     try {
         const {
@@ -245,6 +258,124 @@ export async function logApplicationRule(applicationId, ruleName, renterValue, r
         `, [applicationId, ruleName, renterValue, ruleThreshold, result]);
     } catch (error) {
         console.error('Error logging application rule:', error);
+        throw error;
+    }
+}
+/**
+ * Get applicant submission data extracted from an application
+ * Returns only the fields that are comparable to requirements
+ * This is the ACTUAL DATA applicant provided (vs. requirements.js which has criteria)
+ */
+export async function getApplicantSubmissionData(applicationId) {
+    try {
+        const result = await db.query(`
+            SELECT 
+                id,
+                user_id,
+                first_name,
+                last_name,
+                gender,
+                email,
+                phone,
+                employment_status,
+                monthly_income,
+                pets,
+                children,
+                credit_score,
+                evictions,
+                criminal_record,
+                applicant_data,
+                created_at
+            FROM applications
+            WHERE id = $1
+        `, [applicationId]);
+
+        if (!result.rows[0]) return null;
+
+        const app = result.rows[0];
+        return {
+            id: app.id,
+            user_id: app.user_id,
+            first_name: app.first_name,
+            last_name: app.last_name,
+            gender: app.gender,
+            email: app.email,
+            phone: app.phone,
+            employment_status: app.employment_status,
+            monthly_income: app.monthly_income,
+            pets: app.pets || 0,
+            children: app.children || 0,
+            credit_score: app.credit_score,
+            evictions: app.evictions || false,
+            criminal_record: app.criminal_record || false,
+            additional_data: app.applicant_data ? JSON.parse(app.applicant_data) : null,
+            submitted_at: app.created_at
+        };
+    } catch (error) {
+        console.error('Error getting applicant submission data:', error);
+        throw error;
+    }
+}
+
+/**
+ * Get all applicant submissions for a unit
+ * Shows all who applied to a specific property/unit
+ */
+export async function getApplicationsByUnit(unitId) {
+    try {
+        const result = await db.query(`
+            SELECT * FROM applications
+            WHERE unit_id = $1
+            ORDER BY created_at DESC
+        `, [unitId]);
+
+        return result.rows.map(row => ({
+            ...row,
+            applicantData: typeof row.applicant_data === 'string' ? JSON.parse(row.applicant_data) : row.applicant_data,
+            topRejectionReasons: typeof row.top_rejection_reasons === 'string' ? JSON.parse(row.top_rejection_reasons) : row.top_rejection_reasons
+        }));
+    } catch (error) {
+        console.error('Error getting applications by unit:', error);
+        throw error;
+    }
+}
+
+/**
+ * Compare a single applicant submission against complex requirements
+ * Returns a detailed matching report
+ */
+export async function compareApplicantToRequirements(applicationId, complexId) {
+    try {
+        const applicant = await getApplicantSubmissionData(applicationId);
+        if (!applicant) throw new Error('Application not found');
+
+        // Import requirements module to get requirements data
+        const { getRequirementsForComplex, checkApplicantMeetsRequirements } = await import('./requirements.js');
+        
+        const requirements = await getRequirementsForComplex(complexId);
+        if (!requirements) {
+            return {
+                applicantId: applicationId,
+                complexId,
+                result: 'no_requirements',
+                message: 'No requirements set for this complex'
+            };
+        }
+
+        // Use requirements module to check
+        const matchResult = await checkApplicantMeetsRequirements(applicationId, complexId);
+
+        return {
+            applicationId,
+            complexId,
+            applicantData: applicant,
+            requirementsData: requirements,
+            matchResult,
+            passes: matchResult.passes,
+            failedRules: matchResult.failedRules
+        };
+    } catch (error) {
+        console.error('Error comparing applicant to requirements:', error);
         throw error;
     }
 }
