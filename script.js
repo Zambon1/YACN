@@ -12,6 +12,60 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
+// Update SVG line endpoints to follow apartment node centers
+function updateBranchLines() {
+    const svg = document.querySelector('.branch-lines');
+    const container = document.querySelector('.branch-visualization');
+    
+    if (!svg || !container) return;
+    
+    const svgRect = svg.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const viewBox = svg.getAttribute('viewBox').split(' ');
+    const viewBoxWidth = parseFloat(viewBox[2]);
+    const viewBoxHeight = parseFloat(viewBox[3]);
+    
+    // Get silhouette center for line start point
+    const silhouette = document.querySelector('.person-silhouette');
+    const silhouetteRect = silhouette.getBoundingClientRect();
+    const silhouetteX = (silhouetteRect.left - containerRect.left + silhouetteRect.width / 2) / containerRect.width * viewBoxWidth;
+    const silhouetteY = (silhouetteRect.top - containerRect.top + silhouetteRect.height / 2) / containerRect.height * viewBoxHeight;
+    
+    // Update each line to point to the center of its corresponding apartment node image
+    const lines = document.querySelectorAll('.branch-line');
+    
+    lines.forEach((line) => {
+        const nodeIndex = line.getAttribute('data-node');
+        const nodes = document.querySelectorAll('.apartment-node');
+        
+        if (nodeIndex !== null && nodeIndex < nodes.length) {
+            const node = nodes[nodeIndex];
+            const nodeImage = node.querySelector('.node-image');
+            const imageRect = nodeImage.getBoundingClientRect();
+            
+            // Calculate center of the image in SVG coordinates
+            const imageCenterX = (imageRect.left - containerRect.left + imageRect.width / 2) / containerRect.width * viewBoxWidth;
+            const imageCenterY = (imageRect.top - containerRect.top + imageRect.height / 2) / containerRect.height * viewBoxHeight;
+            
+            // Update line start and endpoint
+            line.setAttribute('x1', silhouetteX);
+            line.setAttribute('y1', silhouetteY);
+            line.setAttribute('x2', imageCenterX);
+            line.setAttribute('y2', imageCenterY);
+        }
+    });
+}
+
+// Call on page load and on resize
+window.addEventListener('load', () => {
+    setTimeout(updateBranchLines, 100);
+});
+
+window.addEventListener('resize', updateBranchLines);
+
+// Also update when animations complete
+setTimeout(updateBranchLines, 2500);
+
 // Form submission handler
 const applicationForm = document.getElementById('applicationForm');
 if (applicationForm) {
