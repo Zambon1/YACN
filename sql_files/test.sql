@@ -1,7 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 --1 - USERS
-CREATE TABLE settings (
+CREATE TABLE settings IF NOT EXISTS (
   id SERIAL PRIMARY KEY,
   text_messages BOOLEAN,
   email_list BOOLEAN,
