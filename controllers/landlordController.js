@@ -35,6 +35,13 @@ export async function landlordSignup(req, res) {
             });
         }
 
+        if (!licenseNumber || String(licenseNumber).trim() === '') {
+            return res.status(400).json({
+                success: false,
+                error: 'License number is required'
+            });
+        }
+
         if (password !== confirmPassword) {
             return res.status(400).json({
                 success: false,
@@ -87,8 +94,9 @@ export async function landlordSignup(req, res) {
             last_name: lastName,
             company: companyName,
             email: email,
+            username: username,
             phone: phone,
-            license_number: licenseNumber || null,
+            license_number: licenseNumber,
             user_id: newUser.id
         });
 
