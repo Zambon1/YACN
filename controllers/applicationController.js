@@ -1,7 +1,34 @@
 import { APARTMENTS } from '../data/apartments.js';
-import { createApplicationRecord } from '../data/applications.js';
+import { createApplicationRecord, loadApplications } from '../data/applications.js';
 import { getSession } from '../data/sessions.js';
 import { checkQualification, calculateMatchScore } from '../utils/qualificationChecker.js';
+
+/**
+ * Check if user has submitted an application
+ */
+export const checkUserApplication = (req, res) => {
+    try {
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        const session = token ? getSession(token) : null;
+
+        if (!session || !session.userId) {
+            return res.json({ hasApplication: false });
+        }
+
+        const applications = loadApplications();
+        const userApplication = applications.find(app => app.userId === session.userId);
+
+        res.json({ 
+            hasApplication: !!userApplication,
+            application: userApplication || null
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            error: error.message
+        });
+    }
+};
 
 /**
  * Handle application submission and return matching apartments

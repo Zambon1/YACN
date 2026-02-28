@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const applicationsFilePath = path.join(__dirname, 'applications.json');
 
-function loadApplications() {
+export function loadApplications() {
     try {
         if (fs.existsSync(applicationsFilePath)) {
             const data = fs.readFileSync(applicationsFilePath, 'utf-8');

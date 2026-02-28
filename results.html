@@ -44,30 +44,44 @@
             overflow-x: hidden;
         }
 
-        .top-home-nav {
-            padding: 14px 20px 0;
+        .results-hero {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
         }
 
-        .top-home-nav .container {
+        .results-hero .container {
             max-width: 1200px;
             margin: 0 auto;
         }
 
-        .top-home-nav .back-button {
-            display: inline-block;
+        .results-hero .back-button {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            color: var(--primary-color);
+            border: 2px solid white;
+            padding: 12px 24px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s;
+            text-decoration: none;
         }
 
-        .results-hero {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        .results-hero .back-button:hover {
+            background: var(--primary-color);
             color: white;
-            padding: 60px 20px;
-            text-align: center;
+            border-color: var(--primary-color);
         }
 
         .results-summary {
             background: white;
             padding: 30px;
-            margin: -30px auto 40px;
+            margin: 40px auto;
             max-width: 800px;
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -238,10 +252,10 @@
         }
 
         .apartment-name {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 700;
             color: var(--text-dark);
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
 
         .match-badge {
@@ -271,6 +285,7 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            font-size: 0.9rem;
         }
 
         .apartment-specs {
@@ -593,6 +608,7 @@
             margin-bottom: 0;
             position: relative;
             height: 420px;
+            overflow: visible;
         }
 
         .matches-container.grid-view .apartment-card:hover {
@@ -620,14 +636,15 @@
         }
 
         .primary-price {
-            display: inline-flex;
+            display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 2px;
         }
 
         .matches-container.grid-view .apartment-details {
-            padding: 20px;
+            padding: 10px 16px 20px 16px;
             position: relative;
+            overflow: visible;
         }
 
         .matches-container.grid-view .apartment-summary {
@@ -635,7 +652,7 @@
         }
 
         .matches-container.grid-view .apartment-address {
-            margin-bottom: 12px;
+            margin-bottom: 4px;
         }
 
         .matches-container.grid-view .apartment-hover-details {
@@ -649,13 +666,29 @@
             overflow: hidden;
             padding: 0 20px;
             transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.25s ease;
+            z-index: 1000;
+            column-count: 2;
+            column-gap: 16px;
         }
 
         .matches-container.grid-view .apartment-card:hover .apartment-hover-details,
         .matches-container.grid-view .apartment-card:focus-within .apartment-hover-details {
-            max-height: 280px;
+            max-height: 600px;
             opacity: 1;
             padding: 14px 20px 18px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .matches-container.grid-view .apartment-hover-details > * {
+            break-inside: avoid;
+        }
+
+        .matches-container.grid-view .apartment-actions {
+            column-span: all;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid #e5e7eb;
         }
 
         .matches-container.list-view {
@@ -708,16 +741,11 @@
         </div>
     </nav>
 
-    <div class="top-home-nav">
-        <div class="container">
-            <a href="index.html" class="back-button">← Home</a>
-        </div>
-    </div>
-
     <section class="results-hero">
         <div class="container">
             <h1>Your Apartment Matches</h1>
         </div>
+        <a href="index.html" class="back-button">← Home</a>
     </section>
 
     <div class="results-summary" id="resultsSummary">
@@ -736,7 +764,9 @@
                 </div>
                 <div class="filter-group">
                     <label for="filterState">State</label>
-                    <input type="text" id="filterState" placeholder="Any state">
+                    <select id="filterState">
+                        <option value="">Any state</option>
+                    </select>
                 </div>
                 <div class="filter-group">
                     <label for="filterBedrooms">Bedrooms</label>
@@ -811,15 +841,33 @@
             // Store all matches for filtering
             allMatches = data.matches || [];
 
-            // Create a mapping of cities to states
+            // Create mappings of cities to states and states to cities
             const cityToStateMap = {};
+            const stateMap = {};
             allMatches.forEach(apt => {
                 cityToStateMap[apt.city] = apt.state;
+                
+                if (!stateMap[apt.state]) {
+                    stateMap[apt.state] = [];
+                }
+                if (!stateMap[apt.state].includes(apt.city)) {
+                    stateMap[apt.state].push(apt.city);
+                }
             });
 
-            // Populate city dropdown with unique cities from matches
-            const uniqueCities = [...new Set(allMatches.map(apt => apt.city))].sort();
+            // Populate state dropdown with unique states
+            const uniqueStates = Object.keys(stateMap).sort();
+            const stateSelect = document.getElementById('filterState');
+            uniqueStates.forEach(state => {
+                const option = document.createElement('option');
+                option.value = state;
+                option.textContent = state;
+                stateSelect.appendChild(option);
+            });
+
+            // Populate city dropdown with all unique cities initially
             const citySelect = document.getElementById('filterCity');
+            const uniqueCities = [...new Set(allMatches.map(apt => apt.city))].sort();
             uniqueCities.forEach(city => {
                 const option = document.createElement('option');
                 option.value = city;
@@ -827,15 +875,49 @@
                 citySelect.appendChild(option);
             });
 
+            // Helper function to update city options based on selected state
+            function updateCityOptions() {
+                const selectedState = stateSelect.value;
+                const currentCityValue = citySelect.value;
+                
+                // Clear city options except the default
+                while (citySelect.options.length > 1) {
+                    citySelect.remove(1);
+                }
+                
+                let citiesToShow = [];
+                if (selectedState) {
+                    citiesToShow = (stateMap[selectedState] || []).sort();
+                } else {
+                    citiesToShow = uniqueCities;
+                }
+                
+                citiesToShow.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                });
+                
+                // If the previously selected city is still available, keep it selected
+                if (currentCityValue && [...citySelect.options].some(opt => opt.value === currentCityValue)) {
+                    citySelect.value = currentCityValue;
+                } else {
+                    citySelect.value = '';
+                }
+            }
+
+            // Add event listener for state selection
+            stateSelect.addEventListener('change', updateCityOptions);
+
             // Add event listener to auto-fill state when city is selected
             citySelect.addEventListener('change', function() {
                 const selectedCity = this.value;
-                const stateField = document.getElementById('filterState');
                 
                 if (selectedCity && cityToStateMap[selectedCity]) {
-                    stateField.value = cityToStateMap[selectedCity];
+                    stateSelect.value = cityToStateMap[selectedCity];
                 } else {
-                    stateField.value = '';
+                    stateSelect.value = '';
                 }
             });
 
@@ -976,7 +1058,7 @@
 
         function applyFilters() {
             const filterCity = document.getElementById('filterCity').value;
-            const filterState = document.getElementById('filterState').value.toLowerCase();
+            const filterState = document.getElementById('filterState').value;
             const filterBedrooms = document.getElementById('filterBedrooms').value;
             const filterBathrooms = document.getElementById('filterBathrooms').value;
             const filterMaxRent = parseInt(document.getElementById('filterMaxRent').value) || Infinity;
@@ -986,8 +1068,8 @@
                 // City filter (exact match since it's a dropdown)
                 if (filterCity && apt.city !== filterCity) return false;
 
-                // State filter
-                if (filterState && !apt.state.toLowerCase().includes(filterState)) return false;
+                // State filter (exact match since it's a dropdown)
+                if (filterState && apt.state !== filterState) return false;
 
                 // Bedrooms filter
                 if (filterBedrooms && apt.bedrooms !== filterBedrooms) return false;
@@ -1015,6 +1097,7 @@
             document.getElementById('filterMaxRent').value = '';
             document.getElementById('filterMoveInDate').value = '';
 
+            updateCityOptions();
             renderMatches(allMatches);
         }
 

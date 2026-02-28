@@ -33,10 +33,28 @@ function logout() {
 }
 
 // Check if user has submitted an application
-function hasSubmittedApplication() {
+async function hasSubmittedApplication() {
     const user = getCurrentUser();
     if (!user) return false;
     
+    try {
+        const sessionToken = localStorage.getItem('session_token');
+        const response = await fetch('http://localhost:5000/api/user-application', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + sessionToken
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            return data.hasApplication === true;
+        }
+    } catch (err) {
+        console.error('Error checking application status:', err);
+    }
+    
+    // Fallback to localStorage for offline/error cases
     const applicationKey = `application_${user.id || user.email}`;
     return localStorage.getItem(applicationKey) !== null;
 }
@@ -86,8 +104,8 @@ function consumePostLoginRedirect() {
 }
 
 // Check application status and redirect
-function checkApplicationStatus() {
-    if (hasSubmittedApplication()) {
+async function checkApplicationStatus() {
+    if (await hasSubmittedApplication()) {
         // User has submitted an application, show results page
         window.location.href = 'results.html';
     } else {
