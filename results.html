@@ -1280,6 +1280,8 @@
             const filterCity = document.getElementById('filterCity').value;
             const filterState = document.getElementById('filterState').value;
             const filterBedrooms = document.getElementById('filterBedrooms').value;
+            console.log('Filter Bedrooms value:', filterBedrooms);
+            console.log('All matches bedrooms values:', allMatches.map(apt => apt.bedrooms));
             const filterBathrooms = document.getElementById('filterBathrooms').value;
             const filterMaxRent = parseInt(document.getElementById('filterMaxRent').value) || Infinity;
             const filterMoveInDate = document.getElementById('filterMoveInDate').value;
@@ -1291,11 +1293,11 @@
                 // State filter (exact match since it's a dropdown)
                 if (filterState && apt.state !== filterState) return false;
 
-                // Bedrooms filter
-                if (filterBedrooms && apt.bedrooms !== filterBedrooms) return false;
+                // Bedrooms filter (compare integers and strings together)
+                if (filterBedrooms && apt.bedrooms != filterBedrooms) return false;
 
                 // Bathrooms filter
-                if (filterBathrooms && apt.bathrooms.toString() !== filterBathrooms) return false;
+                if (filterBathrooms && apt.bathrooms != filterBathrooms) return false;
 
                 // Max rent filter
                 if (apt.rent > filterMaxRent) return false;
