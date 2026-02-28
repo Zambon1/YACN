@@ -223,6 +223,8 @@ body {
 
 .apartment-node {
     position: absolute;
+    left: var(--node-x, 50%);
+    top: var(--node-y, 10%);
     text-align: center;
     background: white;
     padding: 0.75rem;
@@ -235,11 +237,11 @@ body {
     opacity: 0;
     animation: fadeInNode 0.5s ease-out forwards;
     width: 220px;
-    transform: rotate(var(--node-rotation, 0deg));
+    transform: translateX(-50%) rotate(var(--node-rotation, 0deg));
 }
 
 .apartment-node:hover {
-    transform: rotate(var(--node-rotation, 0deg)) translateY(-5px) scale(1.05);
+    transform: translateX(-50%) rotate(var(--node-rotation, 0deg)) translateY(-5px) scale(1.05);
     box-shadow: 0 8px 20px rgba(217, 119, 87, 0.3);
     border-color: var(--primary-color);
 }
@@ -269,32 +271,32 @@ body {
 /* Node Positions - Evenly spaced vertically */
 .node-1 {
     --node-rotation: -12deg;
-    left: 16%;
-    top: 82px;
+    --node-x: 22%;
+    --node-y: 12%;
     z-index: 6;
     animation-delay: 0.4s;
 }
 
 .node-2 {
     --node-rotation: -4deg;
-    left: 34%;
-    top: 42px;
+    --node-x: 40%;
+    --node-y: 6%;
     z-index: 7;
     animation-delay: 0.6s;
 }
 
 .node-3 {
     --node-rotation: 4deg;
-    left: 52%;
-    top: 42px;
+    --node-x: 60%;
+    --node-y: 6%;
     z-index: 8;
     animation-delay: 0.8s;
 }
 
 .node-4 {
     --node-rotation: 12deg;
-    left: 70%;
-    top: 82px;
+    --node-x: 78%;
+    --node-y: 12%;
     z-index: 9;
     animation-delay: 1s;
 }
@@ -302,50 +304,60 @@ body {
 @keyframes fadeInNode {
     from {
         opacity: 0;
-        transform: rotate(var(--node-rotation, 0deg)) scale(0.8);
+        transform: translateX(-50%) rotate(var(--node-rotation, 0deg)) scale(0.8);
     }
     to {
         opacity: 1;
-        transform: rotate(var(--node-rotation, 0deg)) scale(1);
+        transform: translateX(-50%) rotate(var(--node-rotation, 0deg)) scale(1);
     }
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .branch-visualization {
-        min-height: 980px;
+        min-height: 680px;
     }
-    
-    .person-silhouette {
-        bottom: 24px;
-        left: 50%;
-        top: auto;
-        transform: translateX(-50%);
-    }
-    
-    .branch-lines {
-        display: none;
-    }
-    
+
     .apartment-node {
-        position: relative;
-        margin: 1rem auto;
-        display: inline-block;
+        width: clamp(130px, 28vw, 180px);
+        padding: 0.55rem;
     }
-    
+
+    .node-image {
+        height: 74px;
+    }
+
+    .person-icon {
+        width: 84px;
+        height: 168px;
+    }
+
+    .person-label {
+        font-size: 0.85rem;
+        padding: 0.55rem 0.9rem;
+    }
+
+    .branch-line {
+        stroke-width: 2.2;
+    }
+
+    /* keep fan layout in smaller windows */
+    .apartment-node {
+        position: absolute;
+        margin: 0;
+        display: block;
+    }
+
     .apartments-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-top: 40px;
-        padding-bottom: 280px;
-        gap: 1rem;
+        display: block;
+        margin-top: 0;
+        padding-bottom: 0;
+        gap: 0;
     }
-    
+
     .node-1, .node-2, .node-3, .node-4, .node-5, .node-6, .node-7 {
-        position: relative;
+        position: absolute;
         right: auto;
-        top: auto;
     }
 }
 
