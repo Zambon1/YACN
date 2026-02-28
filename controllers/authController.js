@@ -90,7 +90,9 @@ export async function login(req, res) {
             });
         }
 
-        if (user.password !== password) {
+        // Support both password and password_hash fields
+        const storedPassword = user.password_hash || user.password;
+        if (storedPassword !== password) {
             return res.status(401).json({
                 success: false,
                 error: 'Invalid email/username or password'

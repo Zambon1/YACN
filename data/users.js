@@ -1,64 +1,190 @@
-// User database - stores all registered users
-// Persisted to users.json file
-
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+// User database - PostgreSQL backend with UUID and enhanced features
 import db from '../utils/db.js';
 
 export async function createUser(firstName, lastName, username, email, phone, password) {
-    const client = await db.connect();
     try {
-        const {rows} = await client.query(`
-            INSERT INTO users (first_name, last_name, username, email, phone, password, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *
-        `, [firstName, lastName, username, email, phone, password]);
-        return rows[0];
-    } finally {
-        client.release();
+        // Create default settings and preferences first
+        const settingsResult = await db.query(
+            'INSERT INTO settings DEFAULT VALUES RETURNING id'
+        );
+        const preferencesResult = await db.query(
+            'INSERT INTO preferences DEFAULT VALUES RETURNING id'
+        );
+
+        const settingsId = settingsResult.rows[0].id;
+        const preferencesId = preferencesResult.rows[0].id;
+
+        // Create user with UUID primary key
+        const result = await db.query(`
+            INSERT INTO users (first_name, last_name, username, email, phone, password_hash, settings_id, preferences_id, role)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            RETURNING *
+        `, [firstName, lastName, username, email, phone, password, settingsId, preferencesId, 'renter']);
+        return result.rows[0];
+    } catch (error) {
+        console.error('Error creating user:', error);
+        throw error;
     }
 }
 
 export async function findUserByEmail(email) {
-    const client = await db.connect();
     try {
-        const {rows} = await client.query(`
-            SELECT * FROM users WHERE email = $1
-        `, [email]);
-        return rows[0] || null;
-    } finally {
-        client.release();
+        const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+        return result.rows[0] || null;
+    } catch (error) {
+        console.error('Error finding user by email:', error);
+        throw error;
     }
 }
 
 export async function findUserByUsername(username) {
-    const client = await db.connect();
     try {
-        const {rows} = await client.query(`
-            SELECT * FROM users WHERE username = $1
-        `, [username]);
-        return rows[0] || null;
-    } finally {
-        client.release();
+        const result = await db.query('SELECT * FROM users WHERE username = $1', [username]);
+        return result.rows[0] || null;
+    } catch (error) {
+        console.error('Error finding user by username:', error);
+        throw error;
     }
 }
 
 export async function findUserById(id) {
-    const client = await db.connect();
     try {
-        const {rows} = await client.query(`
-            SELECT * FROM users WHERE id = $1
-        `, [id]);
-        return rows[0] || null;
-    } finally {
-        client.release();
+        const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);
+        return result.rows[0] || null;
+    } catch (error) {
+        console.error('Error finding user by id:', error);
+        throw error;
     }
 }
 
 export function getUserPublic(user) {
     if (!user) return null;
-    const { password, ...publicUser } = user;
+    const { password_hash, password, ...publicUser } = user;
     return publicUser;
+}
+
+export async function getUserSettings(userId) {
+    try {
+        const result = await db.query(`
+            SELECT s.* 
+            FROM settings s
+            JOIN users u ON u.settings_id = s.id
+            WHERE u.id = $1
+        `, [userId]);
+        return result.rows[0] || null;
+    } catch (error) {
+        console.error('Error fetching user settings:', error);
+        throw error;
+    }
+}
+
+export async function getUserPreferences(userId) {
+    try {
+        const result = await db.query(`
+            SELECT p.* 
+            FROM preferences p
+            JOIN users u ON u.preferences_id = p.id
+            WHERE u.id = $1
+        `, [userId]);
+        return result.rows[0] || null;
+    } catch (error) {
+        console.error('Error fetching user preferences:', error);
+        throw error;
+    }
+}
+
+export async function updateUserSettings(userId, settings) {
+    try {
+        const user = await findUserById(userId);
+        if (!user || !user.settings_id) {
+            throw new Error('User or settings not found');
+        }
+
+        const updates = [];
+        const values = [];
+        let paramCount = 1;
+
+        if (settings.text_messages !== undefined) {
+            updates.push(`text_messages = $${paramCount++}`);
+            values.push(settings.text_messages);
+        }
+        if (settings.email_list !== undefined) {
+            updates.push(`email_list = $${paramCount++}`);
+            values.push(settings.email_list);
+        }
+        if (settings.dark_mode !== undefined) {
+            updates.push(`dark_mode = $${paramCount++}`);
+            values.push(settings.dark_mode);
+        }
+
+        if (updates.length === 0) return null;
+
+        values.push(user.settings_id);
+        const result = await db.query(`
+            UPDATE settings 
+            SET ${updates.join(', ')}
+            WHERE id = $${paramCount}
+            RETURNING *
+        `, values);
+
+        return result.rows[0];
+    } catch (error) {
+        console.error('Error updating user settings:', error);
+        throw error;
+    }
+}
+
+export async function updateUserPreferences(userId, preferences) {
+    try {
+        const user = await findUserById(userId);
+        if (!user || !user.preferences_id) {
+            throw new Error('User or preferences not found');
+        }
+
+        const updates = [];
+        const values = [];
+        let paramCount = 1;
+
+        if (preferences.price_min !== undefined) {
+            updates.push(`price_min = $${paramCount++}`);
+            values.push(preferences.price_min);
+        }
+        if (preferences.price_max !== undefined) {
+            updates.push(`price_max = $${paramCount++}`);
+            values.push(preferences.price_max);
+        }
+        if (preferences.pet_preference !== undefined) {
+            updates.push(`pet_preference = $${paramCount++}`);
+            values.push(preferences.pet_preference);
+        }
+        if (preferences.bedroom_preference !== undefined) {
+            updates.push(`bedroom_preference = $${paramCount++}`);
+            values.push(preferences.bedroom_preference);
+        }
+        if (preferences.bathroom_preference !== undefined) {
+            updates.push(`bathroom_preference = $${paramCount++}`);
+            values.push(preferences.bathroom_preference);
+        }
+        if (preferences.term_preference !== undefined) {
+            updates.push(`term_preference = $${paramCount++}`);
+            values.push(preferences.term_preference);
+        }
+
+        if (updates.length === 0) return null;
+
+        values.push(user.preferences_id);
+        const result = await db.query(`
+            UPDATE preferences 
+            SET ${updates.join(', ')}
+            WHERE id = $${paramCount}
+            RETURNING *
+        `, values);
+
+        return result.rows[0];
+    } catch (error) {
+        console.error('Error updating user preferences:', error);
+        throw error;
+    }
 }
 
 // const __filename = fileURLToPath(import.meta.url);

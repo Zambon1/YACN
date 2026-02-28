@@ -56,14 +56,29 @@
                     <p class="section-subtitle">Join RentMatch to find your perfect apartment</p>
                     
                     <form id="signupForm" class="auth-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="signupFirstName">First Name *</label>
+                                <input type="text" id="signupFirstName" name="signupFirstName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signupLastName">Last Name *</label>
+                                <input type="text" id="signupLastName" name="signupLastName" required>
+                            </div>
+                        </div>
                         <div class="form-group">
                             <label for="signupEmail">Email Address *</label>
                             <input type="email" id="signupEmail" name="signupEmail" required>
                         </div>
                         <div class="form-group">
+                            <label for="signupPhone">Phone Number *</label>
+                            <input type="tel" id="signupPhone" name="signupPhone" pattern="[0-9\-]{12,14}" placeholder="555-123-4567" required>
+                            <small class="field-hint">Enter 10 digits (auto-formatted)</small>
+                        </div>
+                        <div class="form-group">
                             <label for="signupUsername">Username *</label>
                             <input type="text" id="signupUsername" name="signupUsername" minlength="4" maxlength="20" required>
-                            <small class="field-hint">Username must be 4-20 characters and is kept private</small>
+                            <small class="field-hint">Username must be 4-20 characters</small>
                         </div>
                         <div class="form-group">
                             <label for="signupPassword">Password *</label>

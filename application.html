@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rental Application - RentMatch</title>
     <link rel="stylesheet" href="styles.css">
+    <script>
+        // Immediate auth check - runs before page loads
+        (function() {
+            const token = localStorage.getItem('session_token');
+            console.log('IMMEDIATE AUTH CHECK - Has token:', !!token);
+            if (!token) {
+                console.log('No token found, redirecting to login...');
+                localStorage.setItem('post_login_redirect', 'application.html');
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
 </head>
 <body class="application-page">
     <div class="top-banner">
