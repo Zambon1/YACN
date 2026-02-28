@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landlord Login - RentMatch</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="login-page">
+    <div class="top-banner">
+        <div class="container">
+            <h1>🏠 RentMatch - Landlord Portal</h1>
+        </div>
+    </div>
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="login.html">Renter Login</a></li>
+            </ul>
+            <div class="user-profile"></div>
+        </div>
+    </nav>
+
+    <section class="login-section">
+        <div class="container">
+            <div class="auth-container">
+                <!-- Landlord Login Form -->
+                <div class="auth-card" id="landlordLoginCard">
+                    <h2>Welcome Back, Landlord</h2>
+                    <p class="section-subtitle">Log in to manage your properties</p>
+                    
+                    <form id="landlordLoginForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="landlordLoginEmail">Email or Username</label>
+                            <input type="text" id="landlordLoginEmail" name="landlordLoginEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="landlordLoginPassword">Password</label>
+                            <input type="password" id="landlordLoginPassword" name="landlordLoginPassword" required>
+                        </div>
+                        <div class="error-message" id="landlordLoginError"></div>
+                        <button type="submit" class="submit-button">Log In</button>
+                    </form>
+                    
+                    <p class="auth-switch">
+                        Don't have a landlord account? 
+                        <a href="landlord-signup.html">Create Landlord Account</a>
+                    </p>
+                    <p class="auth-switch">
+                        Looking for renter login? 
+                        <a href="login.html">Renter Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 RentMatch. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Landlord Login Handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const landlordLoginForm = document.getElementById('landlordLoginForm');
+            
+            if (landlordLoginForm) {
+                landlordLoginForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const errorDiv = document.getElementById('landlordLoginError');
+                    errorDiv.textContent = '';
+                    errorDiv.style.display = 'none';
+                    
+                    const emailOrUsername = document.getElementById('landlordLoginEmail').value;
+                    const password = document.getElementById('landlordLoginPassword').value;
+                    
+                    try {
+                        const response = await fetch('http://localhost:5000/api/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                emailOrUsername: emailOrUsername,
+                                password: password
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (response.ok && result.success) {
+                            // Check if user is a landlord (owner role)
+                            if (result.user.role === 'owner' || result.user.role === 'landlord' || result.user.role === 'manager') {
+                                // Store user and session token
+                                localStorage.setItem('rentmatch_user', JSON.stringify(result.user));
+                                localStorage.setItem('session_token', result.token);
+                                
+                                // Redirect to landlord dashboard
+                                window.location.href = 'landlord-dashboard.html';
+                            } else {
+                                // User is not a landlord
+                                errorDiv.textContent = 'This account is not registered as a landlord. Please use the renter login.';
+                                errorDiv.style.display = 'block';
+                            }
+                        } else {
+                            errorDiv.textContent = result.error || 'Login failed. Please check your credentials.';
+                            errorDiv.style.display = 'block';
+                        }
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        errorDiv.textContent = 'An error occurred during login. Please try again.';
+                        errorDiv.style.display = 'block';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

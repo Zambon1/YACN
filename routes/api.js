@@ -19,7 +19,7 @@ import {
     updateLandlordComplex,
     deleteLandlordComplex,
     getComplexRequirements,
-    updateComplexRequirements
+        updateComplexRequirements
 } from '../controllers/landlordController.js';
 
 const router = express.Router();

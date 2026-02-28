@@ -1,9 +1,13 @@
 // Landlord controller - Handle landlord account creation and complex management
-import { createUser, findUserByEmail, findUserByUsername, getUserPublic, findUserById } from '../data/users.js';
+import { createUser, findUserByEmail, findUserByUsername, findUserByPhone, getUserPublic, findUserById } from '../data/users.js';
 import { createSession } from '../data/sessions.js';
 import * as complexes from '../data/complexes.js';
 import * as leasers from '../data/leasers.js';
 import * as requirements from '../data/requirements.js';
+
+function isLandlordRole(role) {
+    return role === 'owner' || role === 'manager' || role === 'landlord';
+}
 
 /**
  * Landlord Signup
@@ -28,6 +32,13 @@ export async function landlordSignup(req, res) {
             return res.status(400).json({
                 success: false,
                 error: 'Company name is required'
+            });
+        }
+
+        if (!licenseNumber || String(licenseNumber).trim() === '') {
+            return res.status(400).json({
+                success: false,
+                error: 'License number is required'
             });
         }
 
@@ -74,7 +85,18 @@ export async function landlordSignup(req, res) {
             });
         }
 
-        // Create landlord user with 'landlord' role
+        // Check for duplicate phone number
+        const existingPhone = await findUserByPhone(phone);
+        if (existingPhone) {
+            return res.status(409).json({
+                success: false,
+                error: `Phone number already registered: ${phone}`,
+                errorType: 'PHONE_EXISTS',
+                field: 'phone'
+            });
+        }
+
+        // Create landlord user (normalized to an allowed DB role)
         const newUser = await createUser(firstName, lastName, username, email, phone, password, 'landlord');
         
         // Create leaser profile for the landlord
@@ -83,8 +105,9 @@ export async function landlordSignup(req, res) {
             last_name: lastName,
             company: companyName,
             email: email,
+            username: username,
             phone: phone,
-            license_number: licenseNumber || null,
+            license_number: licenseNumber,
             user_id: newUser.id
         });
 
@@ -102,6 +125,34 @@ export async function landlordSignup(req, res) {
         });
     } catch (error) {
         console.error('Landlord signup error:', error);
+        
+        // Handle specific database errors
+        if (error.code === '23505') {
+            // Unique constraint violation
+            if (error.constraint === 'users_email_key') {
+                return res.status(409).json({
+                    success: false,
+                    error: 'Email address is already registered',
+                    errorType: 'EMAIL_EXISTS',
+                    field: 'email'
+                });
+            } else if (error.constraint === 'users_username_key') {
+                return res.status(409).json({
+                    success: false,
+                    error: 'Username is already taken',
+                    errorType: 'USERNAME_EXISTS',
+                    field: 'username'
+                });
+            } else if (error.constraint === 'users_phone_key') {
+                return res.status(409).json({
+                    success: false,
+                    error: 'Phone number is already registered',
+                    errorType: 'PHONE_EXISTS',
+                    field: 'phone'
+                });
+            }
+        }
+        
         res.status(500).json({
             success: false,
             error: 'Error creating landlord account'
@@ -135,7 +186,7 @@ export async function getLandlordProfile(req, res) {
         }
 
         const user = await findUserById(session.user_id);
-        if (!user || user.role !== 'landlord') {
+        if (!user || !isLandlordRole(user.role)) {
             return res.status(403).json({
                 success: false,
                 error: 'This endpoint is for landlords only'
@@ -195,7 +246,7 @@ export async function createLandlordComplex(req, res) {
         }
 
         const user = await findUserById(session.user_id);
-        if (!user || user.role !== 'landlord') {
+        if (!user || !isLandlordRole(user.role)) {
             return res.status(403).json({
                 success: false,
                 error: 'Only landlords can create complexes'
