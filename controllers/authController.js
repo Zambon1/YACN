@@ -39,13 +39,13 @@ function validateCreateUserBody(body) {
 router.post("/", async (req, res) => {
     if (validateCreateUserBody(req.body)) {
             const user = await createUser(
-        req.body.firstname,
-        req.body.lastname,
-        req.body.email,
-        req.body.phone,
-        req.body.password,
-        req.body.confirmPassword
-        )
+                req.body.firstname,
+                req.body.lastname,
+                req.body.email,
+                req.body.phone,
+                req.body.password,
+                req.body.confirmPassword
+                )
 
         const token = await createSession(user.id);
         res.cookie('session_token', token, {httpOnly: true});
