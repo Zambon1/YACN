@@ -2,28 +2,47 @@
 import db from '../utils/db.js';
 
 export async function createUser(firstName, lastName, username, email, phone, password) {
+    const client = await db.connect();
     try {
-        // Create default settings and preferences first
-        const settingsResult = await db.query(
+        await client.query('BEGIN');
+
+        const settingsResult = await client.query(
             'INSERT INTO settings DEFAULT VALUES RETURNING id'
         );
-        const preferencesResult = await db.query(
-            'INSERT INTO preferences DEFAULT VALUES RETURNING id'
-        );
-
         const settingsId = settingsResult.rows[0].id;
+
+        // Create user first so preferences.user_id can reference it
+        const userResult = await client.query(`
+            INSERT INTO users (first_name, last_name, username, email, phone, password_hash, settings_id, role)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING *
+        `, [firstName, lastName, username, email, phone, password, settingsId, 'renter']);
+
+        const createdUser = userResult.rows[0];
+
+        const preferencesResult = await client.query(`
+            INSERT INTO preferences (user_id)
+            VALUES ($1)
+            RETURNING id
+        `, [createdUser.id]);
+
         const preferencesId = preferencesResult.rows[0].id;
 
-        // Create user with UUID primary key
-        const result = await db.query(`
-            INSERT INTO users (first_name, last_name, username, email, phone, password_hash, settings_id, preferences_id, role)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        const finalUserResult = await client.query(`
+            UPDATE users
+            SET preferences_id = $1
+            WHERE id = $2
             RETURNING *
-        `, [firstName, lastName, username, email, phone, password, settingsId, preferencesId, 'renter']);
-        return result.rows[0];
+        `, [preferencesId, createdUser.id]);
+
+        await client.query('COMMIT');
+        return finalUserResult.rows[0];
     } catch (error) {
+        await client.query('ROLLBACK');
         console.error('Error creating user:', error);
         throw error;
+    } finally {
+        client.release();
     }
 }
 
