@@ -1,4 +1,4 @@
-/*
+
   --0 - Schema Sections
 CREATE SCHEMA core;
 CREATE SCHEMA secure;
@@ -65,7 +65,7 @@ CREATE TABLE core.organizations (
 
 
 
-  5B - Memmbers (Managers or Owners)
+  --5B - Members (Managers or Owners)
 CREATE TABLE core.organization_members (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID REFERENCES core.organizations(id) ON DELETE CASCADE,
@@ -114,7 +114,7 @@ CREATE TABLE core.qualification_rules (
 
 
 
-  --8 Organizations
+  --8 Applications Justification and Status
 CREATE TABLE core.applications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     unit_id UUID REFERENCES core.units(id),
