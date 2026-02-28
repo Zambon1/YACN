@@ -34,6 +34,66 @@
         </div>
     </section>
 
+    <section id="visualization" class="visualization-section">
+        <div class="container">
+            <h2>One Application. No Repeated Fees.</h2>
+            <p class="viz-subtitle">Stop wasting time and money on application fees for apartments you don't qualify for</p>
+            <div class="branch-visualization">
+                <!-- Person Silhouette -->
+                <div class="person-silhouette">
+                    <div class="person-icon">
+                        <svg viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Head -->
+                            <circle cx="50" cy="30" r="20" fill="var(--primary-color)"/>
+                            <!-- Body -->
+                            <rect x="35" y="50" width="30" height="50" rx="5" fill="var(--primary-color)"/>
+                            <!-- Arms -->
+                            <rect x="5" y="55" width="35" height="12" rx="6" fill="var(--primary-color)" transform="rotate(-20 22 61)"/>
+                            <rect x="60" y="55" width="35" height="12" rx="6" fill="var(--primary-color)" transform="rotate(20 78 61)"/>
+                            <!-- Legs -->
+                            <rect x="38" y="95" width="12" height="55" rx="6" fill="var(--primary-color)"/>
+                            <rect x="50" y="95" width="12" height="55" rx="6" fill="var(--primary-color)"/>
+                        </svg>
+                    </div>
+                    <p class="person-label">One Application<br>One Fee</p>
+                </div>
+
+                <!-- SVG Lines Container -->
+                <svg class="branch-lines" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
+                    <!-- Lines from person to apartments -->
+                    <line x1="150" y1="350" x2="750" y2="100" class="branch-line line-1" />
+                    <line x1="150" y1="350" x2="750" y2="270" class="branch-line line-2" />
+                    <line x1="150" y1="350" x2="750" y2="440" class="branch-line line-3" />
+                    <line x1="150" y1="350" x2="750" y2="610" class="branch-line line-4" />
+                </svg>
+
+                <!-- Apartment Options -->
+                <div class="apartments-container">
+                    <div class="apartment-node node-1">
+                        <div class="node-icon">🏢</div>
+                        <p class="node-title">Luxury Lofts</p>
+                        <p class="node-subtitle">Downtown</p>
+                    </div>
+                    <div class="apartment-node node-2">
+                        <div class="node-icon">🏘️</div>
+                        <p class="node-title">Family Homes</p>
+                        <p class="node-subtitle">Suburban</p>
+                    </div>
+                    <div class="apartment-node node-3">
+                        <div class="node-icon">🏠</div>
+                        <p class="node-title">Cozy Studios</p>
+                        <p class="node-subtitle">Urban</p>
+                    </div>
+                    <div class="apartment-node node-4">
+                        <div class="node-icon">🏡</div>
+                        <p class="node-title">Budget Friendly</p>
+                        <p class="node-subtitle">Affordable</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section id="about-service" class="about-service">
         <div class="container">
             <h2>What RentMatch Does for You</h2>

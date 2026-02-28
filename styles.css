@@ -111,6 +111,230 @@ body {
     opacity: 0.95;
 }
 
+/* Visualization Section */
+.visualization-section {
+    padding: 80px 20px;
+    background: linear-gradient(180deg, var(--bg-white) 0%, var(--bg-light) 100%);
+    overflow: hidden;
+}
+
+.visualization-section h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-dark);
+}
+
+.viz-subtitle {
+    text-align: center;
+    font-size: 1.2rem;
+    color: var(--text-light);
+    margin-bottom: 3rem;
+    font-weight: 500;
+}
+
+.branch-visualization {
+    position: relative;
+    min-height: 700px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Person Silhouette */
+.person-silhouette {
+    position: absolute;
+    left: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    text-align: center;
+}
+
+.person-icon {
+    width: 100px;
+    height: 200px;
+    margin: 0 auto 1rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+.person-icon svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.person-label {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 1rem;
+    background: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    line-height: 1.4;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Branch Lines */
+.branch-lines {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.branch-line {
+    stroke: var(--primary-color);
+    stroke-width: 3;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: drawLine 2s ease-out forwards;
+    opacity: 0.6;
+}
+
+.branch-line.line-1 { animation-delay: 0.3s; }
+.branch-line.line-2 { animation-delay: 0.5s; }
+.branch-line.line-3 { animation-delay: 0.7s; }
+.branch-line.line-4 { animation-delay: 0.9s; }
+
+@keyframes drawLine {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* Apartment Nodes */
+.apartments-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.apartment-node {
+    position: absolute;
+    text-align: center;
+    background: white;
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 3px solid var(--border-color);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    z-index: 5;
+    opacity: 0;
+    animation: fadeInNode 0.5s ease-out forwards;
+    min-width: 160px;
+}
+
+.apartment-node:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(217, 119, 87, 0.3);
+    border-color: var(--primary-color);
+}
+
+.node-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.node-title {
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+}
+
+.node-subtitle {
+    font-weight: 500;
+    color: var(--text-light);
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+/* Node Positions - Evenly spaced vertically */
+.node-1 {
+    right: 10%;
+    top: 50px;
+    animation-delay: 0.4s;
+}
+
+.node-2 {
+    right: 10%;
+    top: 220px;
+    animation-delay: 0.6s;
+}
+
+.node-3 {
+    right: 10%;
+    top: 390px;
+    animation-delay: 0.8s;
+}
+
+.node-4 {
+    right: 10%;
+    top: 560px;
+    animation-delay: 1s;
+}
+
+@keyframes fadeInNode {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .branch-visualization {
+        min-height: 800px;
+    }
+    
+    .person-silhouette {
+        left: 50%;
+        top: 50px;
+        transform: translateX(-50%);
+    }
+    
+    .branch-lines {
+        display: none;
+    }
+    
+    .apartment-node {
+        position: relative;
+        margin: 1rem auto;
+        display: inline-block;
+    }
+    
+    .apartments-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 300px;
+        gap: 1rem;
+    }
+    
+    .node-1, .node-2, .node-3, .node-4, .node-5, .node-6, .node-7 {
+        position: relative;
+        right: auto;
+        top: auto;
+    }
+}
+
 .about-service {
     padding: 80px 20px;
     background-color: var(--bg-white);

@@ -238,6 +238,202 @@
             color: white;
         }
 
+        /* Visualization Styles */
+        .visualization-container {
+            position: relative;
+            width: 100%;
+            min-height: 800px;
+            background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 60px 20px;
+            overflow-x: auto;
+        }
+
+        .person-silhouette {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 180px;
+            z-index: 10;
+        }
+
+        .person-head {
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            margin: 0 auto 5px;
+            box-shadow: 0 4px 12px rgba(217, 119, 87, 0.3);
+        }
+
+        .person-body {
+            width: 60px;
+            height: 80px;
+            background: var(--primary-color);
+            border-radius: 30px 30px 0 0;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(217, 119, 87, 0.3);
+        }
+
+        .person-arms {
+            position: absolute;
+            width: 100px;
+            height: 12px;
+            background: var(--primary-color);
+            border-radius: 6px;
+            top: 20px;
+            left: -20px;
+        }
+
+        .person-legs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .person-leg {
+            width: 20px;
+            height: 50px;
+            background: var(--primary-color);
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 12px rgba(217, 119, 87, 0.3);
+        }
+
+        .branches-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .branch-line {
+            stroke: var(--primary-color);
+            stroke-width: 3;
+            fill: none;
+            opacity: 0.6;
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawLine 2s ease-out forwards;
+        }
+
+        @keyframes drawLine {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .apartment-node {
+            position: absolute;
+            width: 280px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            transition: all 0.3s;
+            cursor: pointer;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .apartment-node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+            z-index: 100;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .node-image {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .node-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .node-details {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .node-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .node-match {
+            display: inline-block;
+            background: var(--secondary-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .node-amenities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 10px;
+        }
+
+        .node-amenity {
+            background: var(--bg-light);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--text-dark);
+        }
+
+        .view-toggle {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .toggle-button {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-button:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .toggle-button.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
         @media (max-width: 768px) {
             .apartment-card-content {
                 grid-template-columns: 1fr;
@@ -249,6 +445,19 @@
 
             .apartment-actions {
                 flex-direction: column;
+            }
+
+            .apartment-node {
+                width: 200px;
+                padding: 15px;
+            }
+
+            .node-image {
+                height: 100px;
+            }
+
+            .visualization-container {
+                min-height: 1000px;
             }
         }
     </style>
@@ -272,8 +481,17 @@
         <!-- Populated by JavaScript -->
     </div>
 
-    <div class="matches-container" id="matchesContainer">
-        <!-- Populated by JavaScript -->
+    <div class="view-toggle">
+        <button class="toggle-button active" onclick="switchView('tree')" id="treeViewBtn">🌳 Tree View</button>
+        <button class="toggle-button" onclick="switchView('list')" id="listViewBtn">📋 List View</button>
+    </div>
+
+    <div class="visualization-container" id="visualizationView" style="display: block;">
+        <!-- Tree visualization populated by JavaScript -->
+    </div>
+
+    <div class="matches-container" id="matchesContainer" style="display: none;">
+        <!-- List view populated by JavaScript -->
     </div>
 
     <div style="text-align: center; padding-bottom: 40px;">
