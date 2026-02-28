@@ -1,5 +1,13 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-  --1 - USERS
+--1 - USERS
+CREATE TABLE settings (
+  id SERIAL PRIMARY KEY,
+  text_messages BOOLEAN,
+  email_list BOOLEAN,
+  dark_mode BOOLEAN
+);
+
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     first_name VARCHAR(255) NOT NULL,
@@ -12,17 +20,14 @@ CREATE TABLE users (
     settings_id INT,
     preferences_id INT,
     role VARCHAR(255) CHECK (role IN ('manager', 'owner', 'renter')),
-    FOREIGN KEY (application_id) REFERENCES applications(id),
-    FOREIGN KEY (settings_id) REFERENCES settings(id),
-    FOREIGN KEY (preferences_id) REFERENCES preferences(id),
     created_at TIMESTAMP DEFAULT now()
 );
 
-CREATE TABLE settings (
+CREATE TABLE sessions (
   id SERIAL PRIMARY KEY,
-  text_messages BOOLEAN,
-  email_list BOOLEAN,
-  dark_mode BOOLEAN
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token TEXT UNIQUE NOT NULL,
+  created_at TIMESTAMP DEFAULT now()
 );
 
 CREATE TABLE preferences (
@@ -39,7 +44,7 @@ CREATE TABLE preferences (
 
 CREATE TABLE guarantor (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) NOT NULL ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   monthly_income INT NOT NULL,
   criminal_check BOOLEAN,
   credit_score VARCHAR(255) CHECK (credit_score IN ('very poor', 'poor', 'fair', 'good', 'excellent'))
@@ -56,17 +61,17 @@ CREATE TABLE leaser (
 
 CREATE TABLE complex (
   id SERIAL PRIMARY KEY,
-  leaser_id UUID NOT NULL REFERENCES leaser(id) ON DELETE CASCADE,
+  leaser_id UUID REFERENCES leaser(id) ON DELETE CASCADE,
   us_state VARCHAR(255) NOT NULL,
   city VARCHAR(255) NOT NULL,
   street VARCHAR(255) NOT NULL,
   area_code INT,
-  application_rules_id INT REFERENCES application_rules(id) ON DELETE CASCADE
+  application_rules_id INT
 );
 
 CREATE TABLE unit (
   id SERIAL PRIMARY KEY,
-  complex_id INT NOT NULL REFERENCES complex(id) ON DELETE CASCADE,
+  complex_id INT REFERENCES complex(id) ON DELETE CASCADE,
   price INT NOT NULL,
   term INT CHECK (term IN (1, 3, 6, 9, 12)),
   bedroom INT CHECK (bedroom IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)),
@@ -76,7 +81,7 @@ CREATE TABLE unit (
 
 CREATE TABLE applications (
   id SERIAL PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   unit_id INT REFERENCES unit(id),
   first_name VARCHAR(255) NOT NULL,
   last_name VARCHAR(255) NOT NULL,
@@ -99,7 +104,7 @@ CREATE TABLE applications (
 
 CREATE TABLE application_requirements (
   id SERIAL PRIMARY KEY,
-  complex_id INT NOT NULL REFERENCES complex(id) ON DELETE CASCADE,
+  complex_id INT REFERENCES complex(id) ON DELETE CASCADE,
   first_name BOOLEAN,
   last_name BOOLEAN,
   gender VARCHAR(255) CHECK (gender IN ('male', 'female')),
@@ -114,10 +119,22 @@ CREATE TABLE application_requirements (
   employment_hist BOOLEAN,
   children_allowed INT,
   guarantor_allowed BOOLEAN,
-  credit_score_min VARCHAR(255) CHECK (credit_score IN ('poor', 'fair', 'good', 'excellent')),
+  credit_score_min VARCHAR(255) CHECK (credit_score_min IN ('poor', 'fair', 'good', 'excellent')),
   evictions BOOLEAN,
   criminal_record BOOLEAN
 );
+
+ALTER TABLE users
+  ADD CONSTRAINT fk_users_application
+    FOREIGN KEY (application_id) REFERENCES applications(id),
+  ADD CONSTRAINT fk_users_settings
+    FOREIGN KEY (settings_id) REFERENCES settings(id),
+  ADD CONSTRAINT fk_users_preferences
+    FOREIGN KEY (preferences_id) REFERENCES preferences(id);
+
+ALTER TABLE complex
+  ADD CONSTRAINT fk_complex_application_rules
+    FOREIGN KEY (application_rules_id) REFERENCES application_requirements(id) ON DELETE CASCADE;
 
   --2 - PROFILES
 -- CREATE TABLE core.renter_profiles (
