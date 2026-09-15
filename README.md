@@ -148,23 +148,3 @@ Hackathon/
 ├── requirements.txt    # Python dependencies
 └── README.md          # This file
 ```
-
-## Future Enhancements
-
-- Database integration (PostgreSQL/MongoDB)
-- User authentication and saved applications
-- Email notifications to property managers
-- Tour scheduling integration
-- Document upload for verification
-- Real-time availability checking
-- Mobile app version
-- Payment processing for application fees
-- Multi-language support
-
-## License
-
-This project is open source and available for educational purposes.
-
-## Support
-
-For issues or questions, please check the code comments or modify as needed for your use case.
