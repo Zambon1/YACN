@@ -1,4 +1,6 @@
-# RentMatch - Apartment Matching Platform
+# Rent Finalis - Apartment Matching Platform
+
+### Created for USU Hackathon in February 2026
 
 A web application that helps renters find apartments they qualify for by filling out a single application form.
 
